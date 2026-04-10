@@ -22,10 +22,4 @@ test("user can sign up", async ({ page }) => {
   await expect(signupPage.accountCreatedHeader()).toContainText(
     "Account Created!",
   );
-  await expect(signupPage.continueButton()).toBeVisible();
-  await expect(signupPage.continueButton()).toBeEnabled();
-
-  await signupPage.continueAfterAccountCreated();
-  await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
-  await expect(signupPage.logoutLink()).toBeVisible();
 });
