@@ -1,0 +1,26 @@
+{
+  "name": "portfolioqe",
+  "version": "1.0.0",
+  "description": "This repository is showcasing my skills as a Quality Engineer",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pattrick97/portfolioQE.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Pattrick97/portfolioQE/issues"
+  },
+  "homepage": "https://github.com/Pattrick97/portfolioQE#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.4.0"
+  }
+}
