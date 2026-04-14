@@ -4,36 +4,27 @@ import type { SignupData } from "../data/signUp.data";
 export class SignupPage {
   constructor(private page: Page) {}
 
-  private async acceptConsentIfVisible() {
-    const consentDialog = this.page.locator(".fc-consent-root");
-    const consentButton = this.page.getByRole("button", {
-      name: /consent|agree|accept|zgoda|akcept/i,
-    });
-
-    try {
-      await consentDialog.waitFor({ state: "visible", timeout: 4000 });
-      if (await consentButton.first().isVisible()) {
-        await consentButton.first().click();
-      }
-      await consentDialog.waitFor({ state: "hidden", timeout: 5000 });
-    } catch {
-      // Consent dialog is not always shown, so proceed when absent.
-    }
-  }
-
   async navigate() {
+    await this.page.addLocatorHandler(
+      this.page.locator(".fc-consent-root"),
+      async () => {
+        const consentButton = this.page.getByRole("button", {
+          name: /consent|agree|accept|zgoda|akcept/i,
+        });
+        if (await consentButton.first().isVisible()) {
+          await consentButton.first().click();
+        }
+      },
+    );
+
     await this.page.goto("/login");
-    await this.acceptConsentIfVisible();
   }
 
   async startSignup(data: SignupData) {
-    await this.acceptConsentIfVisible();
-
     await this.page
       .locator('input[data-qa="signup-name"]')
       .fill(data.firstName);
     await this.page.locator('input[data-qa="signup-email"]').fill(data.email);
-    await this.acceptConsentIfVisible();
     await this.page.locator('button[data-qa="signup-button"]').click();
   }
 
@@ -69,7 +60,6 @@ export class SignupPage {
   }
 
   async continueAfterAccountCreated() {
-    await this.acceptConsentIfVisible();
     await this.page.locator('a[data-qa="continue-button"]').click();
   }
 
@@ -101,5 +91,15 @@ export class SignupPage {
 
   logoutLink(): Locator {
     return this.page.locator('a[href="/logout"]');
+  }
+
+  async deleteAccount() {
+    await this.page.locator('a[href="/delete_account"]').click();
+  }
+
+  accountDeletedHeader(): Locator {
+    return this.page.locator(
+      'h2[data-qa="account-deleted"], h2:has-text("Account Deleted!")',
+    );
   }
 }
