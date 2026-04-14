@@ -2,30 +2,65 @@ import { expect, test } from "@playwright/test";
 import { ProductsPage } from "../pages/productsPage.Page";
 import { CartPage } from "../pages/cartPage.Page";
 import { SignupPage } from "../pages/signupPage.Page";
+import { generateSignupData, SignupData } from "../data/signUp.data";
 
-test("user can add a random product to cart and proceed to checkout", async ({
-  page,
-}) => {
-  const signupPage = new SignupPage(page);
-  const productsPage = new ProductsPage(page);
-  const cartPage = new CartPage(page);
+test.describe("Cart", () => {
+  let accountData: SignupData;
 
-  // Register locator handler for consent popup once for the whole test.
-  await signupPage.navigate();
+  test.beforeAll(async ({ browser }) => {
+    accountData = generateSignupData();
+    const page = await browser.newPage();
+    const signupPage = new SignupPage(page);
 
-  await productsPage.navigate();
-  await expect(page).toHaveURL(/.*products.*/);
+    await signupPage.navigate();
+    await signupPage.startSignup(accountData);
+    await expect(signupPage.accountInfoHeader()).toBeVisible();
+    await signupPage.fillSignUpForm(accountData);
+    await signupPage.createAccount();
+    await expect(signupPage.accountCreatedHeader()).toContainText(
+      "Account Created!",
+    );
+    await page.close();
+  });
 
-  const productName = await productsPage.addRandomProductToCart();
-  await expect(productsPage.continueShoppingButton()).toBeVisible();
-  await productsPage.continueShoppingButton().click();
+  test.afterAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    const signupPage = new SignupPage(page);
 
-  await cartPage.navigate();
-  await expect(page).toHaveURL(/.*view_cart.*/);
-  await expect(cartPage.cartRows()).toHaveCount(1);
-  await expect(cartPage.cartProductName(productName)).toBeVisible();
+    await signupPage.navigate();
+    await signupPage.login(accountData.email, accountData.password);
+    await page.goto("/delete_account");
+    await expect(signupPage.accountDeletedHeader()).toContainText(
+      "Account Deleted!",
+    );
+    await page.close();
+  });
 
-  await cartPage.proceedToCheckout();
-  await expect(cartPage.checkoutModal()).toBeVisible();
-  await expect(cartPage.registerLoginLink()).toBeVisible();
+  test.beforeEach(async ({ page }) => {
+    const signupPage = new SignupPage(page);
+    await signupPage.navigate();
+    await signupPage.login(accountData.email, accountData.password);
+    await expect(signupPage.loggedInAs(accountData.firstName)).toBeVisible();
+  });
+
+  test("user can add a random product to cart and proceed to checkout", async ({
+    page,
+  }) => {
+    const productsPage = new ProductsPage(page);
+    const cartPage = new CartPage(page);
+
+    await productsPage.navigate();
+    await expect(page).toHaveURL(/.*products.*/);
+    const productName = await productsPage.addRandomProductToCart();
+    await expect(productsPage.continueShoppingButton()).toBeVisible();
+    await productsPage.continueShoppingButton().click();
+
+    await cartPage.navigate();
+    await expect(page).toHaveURL(/.*view_cart.*/);
+    await expect(cartPage.cartRows()).toHaveCount(1);
+    await expect(cartPage.cartProductName(productName)).toBeVisible();
+
+    await cartPage.proceedToCheckout();
+    await expect(page).toHaveURL(/.*checkout.*/);
+  });
 });
