@@ -4,7 +4,10 @@ import { SignupData, authMessages } from "../data/auth.data";
 import { recoverFromVignette } from "./vignette.helper";
 
 export async function createAccount(browser: Browser, data: SignupData): Promise<void> {
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    baseURL: "https://automationexercise.com",
+  });
+  const page = await context.newPage();
   const signupPage = new SignupPage(page);
 
   await signupPage.navigate();
@@ -13,18 +16,21 @@ export async function createAccount(browser: Browser, data: SignupData): Promise
   await signupPage.fillSignUpForm(data);
   await signupPage.createAccount();
   await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
-  await page.close();
+  await context.close();
 }
 
 export async function deleteAccount(browser: Browser, data: SignupData): Promise<void> {
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    baseURL: "https://automationexercise.com",
+  });
+  const page = await context.newPage();
   const signupPage = new SignupPage(page);
 
   await signupPage.navigate();
   await signupPage.login(data.email, data.password);
   await signupPage.deleteAccount();
   await expect(signupPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
-  await page.close();
+  await context.close();
 }
 
 export async function loginAs(page: Page, data: SignupData): Promise<void> {

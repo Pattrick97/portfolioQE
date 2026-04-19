@@ -1,14 +1,13 @@
-import { expect, test } from "../fixtures/test-fixtures";
+import { expect, test } from "../fixtures/auth-fixtures";
 import { ProductsPage } from "../pages/productsPage.Page";
 import { CartPage } from "../pages/cartPage.Page";
-import { generateSignupData, SignupData } from "../data/auth.data";
 import { guestCartCategoryFilter, cartStaticData, cartMessages } from "../data/cart.data";
-import { recoverFromVignette } from "../helpers/vignette.helper";
-import { createAccount, deleteAccount, loginAs } from "../helpers/auth.helper";
+import { loginAs } from "../helpers/auth.helper";
 import { clearCart } from "../helpers/cart.helper";
 import {
   assertOrderNotPlacedOnPayment,
   goToPaymentFromCheckout,
+  placeOrderWithValidPayment,
   prepareCheckoutWithSingleProduct,
 } from "../helpers/cart-flow.helper";
 
@@ -83,21 +82,8 @@ test.describe("Cart as guest", () => {
 });
 
 test.describe("Cart as logged user", () => {
-  test.describe.configure({ mode: "serial" });
-
-  let accountData: SignupData;
-
-  test.beforeAll(async ({ browser }) => {
-    accountData = generateSignupData();
-    await createAccount(browser, accountData);
-  });
-
-  test.afterAll(async ({ browser }) => {
-    await deleteAccount(browser, accountData);
-  });
-
-  test.beforeEach(async ({ page }) => {
-    await loginAs(page, accountData);
+  test.beforeEach(async ({ page, registeredUser }) => {
+    await loginAs(page, registeredUser);
     await clearCart(page);
   });
 
@@ -139,45 +125,11 @@ test.describe("Cart as logged user", () => {
     await expect(cartPage.placeOrderButton()).toBeVisible();
   });
 
-  test("user can complete checkout and place order @smoke", async ({ page }) => {
+  test("user can complete checkout and place order @smoke", async ({ page, registeredUser }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 
-    await productsPage.navigate();
-    await expect(page).toHaveURL(/.*products.*/);
-
-    await productsPage.addProductToCartByIndex(0);
-    await expect(productsPage.continueShoppingButton()).toBeVisible();
-    await productsPage.closeAddToCartModal();
-
-    await cartPage.navigate();
-    await expect(cartPage.cartRows()).toHaveCount(1);
-
-    await cartPage.proceedToCheckout();
-    await expect(page).toHaveURL(/.*checkout.*/);
-
-    await cartPage.orderComment().fill(cartStaticData.orderComment);
-    await cartPage.placeOrderButton().click();
-
-    await recoverFromVignette(page, {
-      expectedUrlPart: "payment",
-      fallbackPath: "/payment",
-    });
-
-    await expect(page).toHaveURL(/.*payment.*/);
-
-    await expect.soft(cartPage.nameOnCardInput()).toBeVisible();
-    await expect.soft(cartPage.cardNumberInput()).toBeVisible();
-    await expect.soft(cartPage.cvcInput()).toBeVisible();
-    await expect.soft(cartPage.expiryMonthInput()).toBeVisible();
-    await expect.soft(cartPage.expiryYearInput()).toBeVisible();
-
-    await cartPage.nameOnCardInput().fill(accountData.firstName);
-    await cartPage.cardNumberInput().fill(cartStaticData.payment.cardNumber);
-    await cartPage.cvcInput().fill(cartStaticData.payment.cvc);
-    await cartPage.expiryMonthInput().fill(cartStaticData.payment.expiryMonth);
-    await cartPage.expiryYearInput().fill(cartStaticData.payment.expiryYear);
-    await cartPage.payAndConfirmOrderButton().click();
+    await placeOrderWithValidPayment(page, productsPage, cartPage, registeredUser.firstName);
 
     await expect(cartPage.orderPlacedHeader()).toContainText(cartMessages.orderPlaced);
   });

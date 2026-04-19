@@ -1,35 +1,22 @@
-import { expect, test } from "../fixtures/test-fixtures";
-import { generateSignupData, SignupData } from "../data/auth.data";
+import { expect, test } from "../fixtures/auth-fixtures";
 import { SignupPage } from "../pages/signupPage.Page";
-import { createAccount, deleteAccount } from "../helpers/auth.helper";
 
 test.describe("Login", () => {
-  let accountData: SignupData;
-
-  test.beforeAll(async ({ browser }) => {
-    accountData = generateSignupData();
-    await createAccount(browser, accountData);
-  });
-
-  test.afterAll(async ({ browser }) => {
-    await deleteAccount(browser, accountData);
-  });
-
-  test("user can log in with valid credentials @smoke", async ({ page }) => {
+  test("user can log in with valid credentials @smoke", async ({ page, registeredUser }) => {
     const signupPage = new SignupPage(page);
 
     await signupPage.navigate();
-    await signupPage.login(accountData.email, accountData.password);
+    await signupPage.login(registeredUser.email, registeredUser.password);
 
-    await expect(signupPage.loggedInAs(accountData.firstName)).toBeVisible();
+    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
   });
 
-  test("logout ends authenticated session", async ({ page }) => {
+  test("logout ends authenticated session", async ({ page, registeredUser }) => {
     const signupPage = new SignupPage(page);
 
     await signupPage.navigate();
-    await signupPage.login(accountData.email, accountData.password);
-    await expect(signupPage.loggedInAs(accountData.firstName)).toBeVisible();
+    await signupPage.login(registeredUser.email, registeredUser.password);
+    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
 
     await signupPage.logoutLink().click();
     await expect(page).toHaveURL(/.*login.*/);
@@ -37,11 +24,11 @@ test.describe("Login", () => {
     await expect(signupPage.loginLink()).toBeVisible();
   });
 
-  test("user cannot log in with invalid password", async ({ page }) => {
+  test("user cannot log in with invalid password", async ({ page, registeredUser }) => {
     const signupPage = new SignupPage(page);
 
     await signupPage.navigate();
-    await signupPage.login(accountData.email, `${accountData.password}wrong`);
+    await signupPage.login(registeredUser.email, `${registeredUser.password}wrong`);
 
     await expect(signupPage.invalidLoginMessage()).toBeVisible();
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);
@@ -57,21 +44,21 @@ test.describe("Login", () => {
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
-  test("user cannot log in with empty password", async ({ page }) => {
+  test("user cannot log in with empty password", async ({ page, registeredUser }) => {
     const signupPage = new SignupPage(page);
 
     await signupPage.navigate();
-    await signupPage.login(accountData.email, "");
+    await signupPage.login(registeredUser.email, "");
 
     await expect(page).toHaveURL(/.*login.*/);
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
-  test("user cannot log in with empty email", async ({ page }) => {
+  test("user cannot log in with empty email", async ({ page, registeredUser }) => {
     const signupPage = new SignupPage(page);
 
     await signupPage.navigate();
-    await signupPage.login("", accountData.password);
+    await signupPage.login("", registeredUser.password);
 
     await expect(page).toHaveURL(/.*login.*/);
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);

@@ -24,7 +24,7 @@ End-to-end UI + API automation portfolio project built with Playwright and TypeS
 
 ```text
 data/                  # Test data — dynamic generators (faker) and deterministic constants
-fixtures/              # Shared Playwright fixture (consent handler, test + expect exports)
+fixtures/              # Shared Playwright fixtures (consent handler + registered test user)
 helpers/               # Workflow helpers (auth, cart, checkout flow, API assertions, vignette recovery)
 models/                # TypeScript interfaces for test data shapes
 pages/                 # Page Object Model classes (atomic selectors + actions)
@@ -167,6 +167,21 @@ Run headed mode:
 npx playwright test --headed
 ```
 
+Example: use worker-scoped `registeredUser` fixture in a new spec:
+
+```ts
+import { expect, test } from "../fixtures/auth-fixtures";
+
+test("user profile is visible after login", async ({ page, registeredUser }) => {
+  await page.goto("/login");
+  await page.locator('input[data-qa="login-email"]').fill(registeredUser.email);
+  await page.locator('input[data-qa="login-password"]').fill(registeredUser.password);
+  await page.locator('button[data-qa="login-button"]').click();
+
+  await expect(page.getByText(`Logged in as ${registeredUser.firstName}`)).toBeVisible();
+});
+```
+
 ### 4) Lint and format
 
 ```bash
@@ -213,8 +228,9 @@ PR checklist: `.github/PULL_REQUEST_TEMPLATE.md`
 ## Notes and Trade-offs
 
 - Tests include resilience for cookie-consent overlays via a shared `addLocatorHandler` in the fixture.
+- Auth-heavy suites use worker-scoped `registeredUser` fixture (`fixtures/auth-fixtures.ts`) to create/delete accounts once per worker.
 - `recoverFromVignette()` helper handles google_vignette ad-hash redirects that occur intermittently in CI — it detects the hash and performs a fallback `goto()` to the expected URL.
-- `Cart as logged user` tests run in `serial` mode to avoid shared-account state collisions.
+- `Cart as logged user` tests run in parallel with per-test isolation (`beforeEach`: `loginAs()` + `clearCart()`).
 - Per-suite `retries: 2` is set on suites susceptible to network flakiness; global retries remain 0.
 
 ## Debugging Playbook
@@ -239,7 +255,7 @@ PR checklist: `.github/PULL_REQUEST_TEMPLATE.md`
 | `toBeVisible` timeout on navigation              | google_vignette hash appended to URL | Add `recoverFromVignette()` after the triggering click                                      |
 | Consent overlay blocks interaction               | shared fixture not used              | Import `test` from `fixtures/test-fixtures.ts` (not directly from `@playwright/test`)       |
 | `accountInfoHeader` not found after signup click | Navigation intercepted mid-flight    | Add `recoverFromVignette()` with fallback to the expected route (for signup flow: `/login`) |
-| Serial tests fail in wrong order                 | State leak from previous test        | Ensure `beforeEach` calls `clearCart()` and logs in fresh                                   |
+| Cart tests interfere with each other             | State leak from previous test        | Ensure `beforeEach` calls `clearCart()` and logs in fresh                                   |
 | Soft assertion hides real failures               | Misuse of `expect.soft()`            | Use hard assertions for primary outcomes; soft only for secondary UI checks                 |
 
 ### Useful debug flags
