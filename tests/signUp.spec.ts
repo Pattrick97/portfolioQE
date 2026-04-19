@@ -1,7 +1,6 @@
 import { expect, test } from "../fixtures/test-fixtures";
-import { generateSignupData } from "../data/signUp.data";
+import { generateSignupData, authMessages } from "../data/auth.data";
 import { SignupPage } from "../pages/signupPage.Page";
-import { testMessages } from "../data/testConstants.data";
 
 test.describe("Signup", () => {
   test("user can sign up", async ({ page }) => {
@@ -22,13 +21,13 @@ test.describe("Signup", () => {
     await signupPage.createAccount();
     await expect(page).toHaveURL(/.*account_created.*/);
     await expect(signupPage.accountCreatedHeader()).toContainText(
-      testMessages.accountCreated,
+      authMessages.accountCreated,
     );
 
     await signupPage.continueAfterAccountCreated();
     await signupPage.deleteAccount();
     await expect(signupPage.accountDeletedHeader()).toContainText(
-      testMessages.accountDeleted,
+      authMessages.accountDeleted,
     );
     await expect(page).toHaveURL(/.*delete_account.*/);
   });
@@ -44,7 +43,7 @@ test.describe("Signup", () => {
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
     await expect(signupPage.accountCreatedHeader()).toContainText(
-      testMessages.accountCreated,
+      authMessages.accountCreated,
     );
 
     await signupPage.continueAfterAccountCreated();
@@ -58,7 +57,7 @@ test.describe("Signup", () => {
 
     await signupPage.deleteAccount();
     await expect(signupPage.accountDeletedHeader()).toContainText(
-      testMessages.accountDeleted,
+      authMessages.accountDeleted,
     );
   });
 
@@ -76,7 +75,7 @@ test.describe("Signup", () => {
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
     await expect(signupPage.accountCreatedHeader()).toContainText(
-      testMessages.accountCreated,
+      authMessages.accountCreated,
     );
 
     await page.goto("/logout");
@@ -102,6 +101,6 @@ test.describe("Signup", () => {
     await signupPage.createAccount();
 
     await expect(page).toHaveURL(/.*signup.*/);
-    await expect(page.locator("#password:invalid")).toHaveCount(1);
+    await expect(signupPage.passwordInvalidField()).toHaveCount(1);
   });
 });

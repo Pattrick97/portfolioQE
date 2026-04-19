@@ -1,7 +1,6 @@
 import { expect, test } from "../fixtures/test-fixtures";
-import { generateSignupData, SignupData } from "../data/signUp.data";
+import { generateSignupData, SignupData } from "../data/auth.data";
 import { SignupPage } from "../pages/signupPage.Page";
-import { testMessages } from "../data/testConstants.data";
 import { createAccount, deleteAccount } from "../helpers/auth.helper";
 
 test.describe("Login", () => {
@@ -34,8 +33,8 @@ test.describe("Login", () => {
 
     await signupPage.logoutLink().click();
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
-    await expect(page.locator("a[href='/login']")).toBeVisible();
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(signupPage.loginLink()).toBeVisible();
   });
 
   test("user cannot log in with invalid password", async ({ page }) => {
@@ -44,10 +43,8 @@ test.describe("Login", () => {
     await signupPage.navigate();
     await signupPage.login(accountData.email, `${accountData.password}wrong`);
 
-    await expect(
-      page.locator("p", { hasText: testMessages.invalidLogin }),
-    ).toBeVisible();
-    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
+    await expect(signupPage.invalidLoginMessage()).toBeVisible();
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("user cannot log in with empty credentials", async ({ page }) => {
@@ -57,7 +54,7 @@ test.describe("Login", () => {
     await signupPage.login("", "");
 
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("user cannot log in with nonexistent email", async ({ page }) => {
@@ -66,19 +63,18 @@ test.describe("Login", () => {
     await signupPage.navigate();
     await signupPage.login("nonexistent_user@example.com", "SomePassword1!");
 
-    await expect(
-      page.locator("p", { hasText: testMessages.invalidLogin }),
-    ).toBeVisible();
-    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
+    await expect(signupPage.invalidLoginMessage()).toBeVisible();
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("unauthenticated user does not see account management links", async ({
     page,
   }) => {
+    const signupPage = new SignupPage(page);
     await page.goto("/");
 
-    await expect(page.locator("a[href='/delete_account']")).toHaveCount(0);
-    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
-    await expect(page.locator("a[href='/login']")).toBeVisible();
+    await expect(signupPage.deleteAccountLink()).toHaveCount(0);
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(signupPage.loginLink()).toBeVisible();
   });
 });

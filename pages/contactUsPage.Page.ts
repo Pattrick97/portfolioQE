@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import type { ContactUsData } from "../data/contactUs.data";
+import type { ContactUsData } from "../data/contact.data";
 
 export class ContactUsPage {
   constructor(private page: Page) {}
@@ -56,6 +56,15 @@ export class ContactUsPage {
 
   homeButton(): Locator {
     return this.page.locator("a.btn.btn-success");
+  }
+
+  homeNavLink(): Locator {
+    return this.page.getByRole("link", { name: /Home/i });
+  }
+
+  async navigateViaNavbar() {
+    await this.page.goto("/");
+    await this.page.locator("a[href='/contact_us']").click();
   }
 
   async fillForm(data: ContactUsData) {

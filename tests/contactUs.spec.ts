@@ -1,7 +1,10 @@
 import { expect, test } from "../fixtures/test-fixtures";
-import { generateContactUsData } from "../data/contactUs.data";
+import {
+  generateContactUsData,
+  contactStaticData,
+  contactMessages,
+} from "../data/contact.data";
 import { ContactUsPage } from "../pages/contactUsPage.Page";
-import { testContactUsData, testMessages } from "../data/testConstants.data";
 import { recoverFromVignette } from "../helpers/vignette.helper";
 
 test.describe("Contact Us", () => {
@@ -15,11 +18,11 @@ test.describe("Contact Us", () => {
     await expect(contactUsPage.getInTouchHeader()).toBeVisible();
 
     await contactUsPage.fillForm(contactData);
-    await contactUsPage.uploadFile(testContactUsData.uploadFilePath);
+    await contactUsPage.uploadFile(contactStaticData.uploadFilePath);
     await contactUsPage.submitForm();
 
     await expect(contactUsPage.successAlert()).toContainText(
-      testMessages.contactSuccess,
+      contactMessages.contactSuccess,
     );
 
     await contactUsPage.homeButton().click();
@@ -28,7 +31,7 @@ test.describe("Contact Us", () => {
       fallbackPath: "/",
     });
     await expect(page).toHaveURL(/https:\/\/automationexercise\.com\/?$/);
-    await expect.soft(page.getByRole("link", { name: /Home/i })).toBeVisible();
+    await expect.soft(contactUsPage.homeNavLink()).toBeVisible();
   });
 
   test("guest user can submit contact us form without file attachment", async ({
@@ -44,7 +47,7 @@ test.describe("Contact Us", () => {
     await contactUsPage.submitForm();
 
     await expect(contactUsPage.successAlert()).toContainText(
-      testMessages.contactSuccess,
+      contactMessages.contactSuccess,
     );
   });
 
@@ -58,7 +61,7 @@ test.describe("Contact Us", () => {
     await expect(contactUsPage.getInTouchHeader()).toBeVisible();
 
     await contactUsPage.nameInput().fill(contactData.name);
-    await contactUsPage.emailInput().fill(testContactUsData.invalidEmail);
+    await contactUsPage.emailInput().fill(contactStaticData.invalidEmail);
     await contactUsPage.subjectInput().fill(contactData.subject);
     await contactUsPage.messageInput().fill(contactData.message);
     await contactUsPage.submitForm();
@@ -68,12 +71,11 @@ test.describe("Contact Us", () => {
   });
 
   test("user can navigate to contact us page via navbar", async ({ page }) => {
-    await page.goto("/");
+    const contactUsPage = new ContactUsPage(page);
 
-    await page.locator("a[href='/contact_us']").click();
+    await contactUsPage.navigateViaNavbar();
 
     await expect(page).toHaveURL(/.*contact_us.*/);
-    const contactUsPage = new ContactUsPage(page);
     await expect(contactUsPage.getInTouchHeader()).toBeVisible();
   });
 });

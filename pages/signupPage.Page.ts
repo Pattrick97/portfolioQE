@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import type { SignupData } from "../data/signUp.data";
+import type { SignupData } from "../data/auth.data";
 
 export class SignupPage {
   constructor(private page: Page) {}
@@ -91,6 +91,28 @@ export class SignupPage {
 
   logoutLink(): Locator {
     return this.page.locator('a[href="/logout"]');
+  }
+
+  loginLink(): Locator {
+    return this.page.locator("a[href='/login']");
+  }
+
+  deleteAccountLink(): Locator {
+    return this.page.locator("a[href='/delete_account']");
+  }
+
+  loggedInAsAny(): Locator {
+    return this.page.locator("a", { hasText: "Logged in as" });
+  }
+
+  invalidLoginMessage(): Locator {
+    return this.page.locator("p", {
+      hasText: "Your email or password is incorrect!",
+    });
+  }
+
+  passwordInvalidField(): Locator {
+    return this.page.locator("#password:invalid");
   }
 
   async login(email: string, password: string) {

@@ -1,6 +1,9 @@
 import { faker } from "@faker-js/faker";
 import { SignupData } from "../models/SignUp.Model";
 
+export type { SignupData };
+
+// Dynamic data — unique per test run
 export function generateSignupData(): SignupData {
   const gender = faker.helpers.arrayElement(["Mr", "Mrs"]) as "Mr" | "Mrs";
 
@@ -25,7 +28,7 @@ export function generateSignupData(): SignupData {
     address1: faker.location.streetAddress(),
     address2: faker.location.secondaryAddress(),
 
-    country: "United States", // dropdown ma ograniczone opcje
+    country: "United States", // dropdown has restricted options
 
     state: faker.location.state(),
     city: faker.location.city(),
@@ -35,4 +38,9 @@ export function generateSignupData(): SignupData {
   };
 }
 
-export { SignupData };
+// Deterministic data — assertion strings for auth domain
+export const authMessages = {
+  accountCreated: "Account Created!",
+  accountDeleted: "Account Deleted!",
+  invalidLogin: "Your email or password is incorrect!",
+} as const;

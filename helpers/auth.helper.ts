@@ -1,7 +1,6 @@
 import { Browser, Page, expect } from "@playwright/test";
 import { SignupPage } from "../pages/signupPage.Page";
-import { SignupData } from "../data/signUp.data";
-import { testMessages } from "../data/testConstants.data";
+import { SignupData, authMessages } from "../data/auth.data";
 
 export async function createAccount(
   browser: Browser,
@@ -16,7 +15,7 @@ export async function createAccount(
   await signupPage.fillSignUpForm(data);
   await signupPage.createAccount();
   await expect(signupPage.accountCreatedHeader()).toContainText(
-    testMessages.accountCreated,
+    authMessages.accountCreated,
   );
   await page.close();
 }
@@ -32,7 +31,7 @@ export async function deleteAccount(
   await signupPage.login(data.email, data.password);
   await signupPage.deleteAccount();
   await expect(signupPage.accountDeletedHeader()).toContainText(
-    testMessages.accountDeleted,
+    authMessages.accountDeleted,
   );
   await page.close();
 }

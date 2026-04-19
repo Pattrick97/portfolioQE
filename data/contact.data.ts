@@ -7,6 +7,7 @@ export interface ContactUsData {
   message: string;
 }
 
+// Dynamic data — unique per test run
 export function generateContactUsData(): ContactUsData {
   return {
     name: faker.person.fullName(),
@@ -15,3 +16,13 @@ export function generateContactUsData(): ContactUsData {
     message: faker.lorem.paragraph(),
   };
 }
+
+// Deterministic data — static inputs and assertion strings for contact domain
+export const contactStaticData = {
+  invalidEmail: "invalid-email-format",
+  uploadFilePath: "README.md",
+} as const;
+
+export const contactMessages = {
+  contactSuccess: "Success! Your details have been submitted successfully.",
+} as const;

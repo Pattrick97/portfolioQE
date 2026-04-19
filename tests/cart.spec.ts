@@ -1,9 +1,12 @@
 import { expect, test } from "../fixtures/test-fixtures";
 import { ProductsPage } from "../pages/productsPage.Page";
 import { CartPage } from "../pages/cartPage.Page";
-import { generateSignupData, SignupData } from "../data/signUp.data";
-import { guestCartCategoryFilter } from "../data/productFilters.data";
-import { testCheckoutData, testMessages } from "../data/testConstants.data";
+import { generateSignupData, SignupData } from "../data/auth.data";
+import {
+  guestCartCategoryFilter,
+  cartStaticData,
+  cartMessages,
+} from "../data/cart.data";
 import { recoverFromVignette } from "../helpers/vignette.helper";
 import { createAccount, deleteAccount, loginAs } from "../helpers/auth.helper";
 import { clearCart } from "../helpers/cart.helper";
@@ -158,7 +161,7 @@ test.describe("Cart as logged user", () => {
     await cartPage.proceedToCheckout();
     await expect(page).toHaveURL(/.*checkout.*/);
 
-    await cartPage.orderComment().fill(testCheckoutData.orderComment);
+    await cartPage.orderComment().fill(cartStaticData.orderComment);
     await cartPage.placeOrderButton().click();
 
     await recoverFromVignette(page, {
@@ -175,16 +178,14 @@ test.describe("Cart as logged user", () => {
     await expect.soft(cartPage.expiryYearInput()).toBeVisible();
 
     await cartPage.nameOnCardInput().fill(accountData.firstName);
-    await cartPage.cardNumberInput().fill(testCheckoutData.payment.cardNumber);
-    await cartPage.cvcInput().fill(testCheckoutData.payment.cvc);
-    await cartPage
-      .expiryMonthInput()
-      .fill(testCheckoutData.payment.expiryMonth);
-    await cartPage.expiryYearInput().fill(testCheckoutData.payment.expiryYear);
+    await cartPage.cardNumberInput().fill(cartStaticData.payment.cardNumber);
+    await cartPage.cvcInput().fill(cartStaticData.payment.cvc);
+    await cartPage.expiryMonthInput().fill(cartStaticData.payment.expiryMonth);
+    await cartPage.expiryYearInput().fill(cartStaticData.payment.expiryYear);
     await cartPage.payAndConfirmOrderButton().click();
 
     await expect(cartPage.orderPlacedHeader()).toContainText(
-      testMessages.orderPlaced,
+      cartMessages.orderPlaced,
     );
   });
 
