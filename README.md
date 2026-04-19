@@ -21,12 +21,15 @@ End-to-end UI automation portfolio project built with Playwright and TypeScript 
 ## Project Structure
 
 ```text
-data/                  # Test data generators and constants
-fixtures/              # Test fixtures (optional shared setup)
-models/                # TypeScript interfaces/models for data
-pages/                 # Page Object Model classes
+data/                  # Test data — dynamic generators (faker) and deterministic constants
+fixtures/              # Shared Playwright fixture (consent handler, test + expect exports)
+helpers/               # Workflow helpers (auth flows, cart cleanup, vignette recovery)
+models/                # TypeScript interfaces for test data shapes
+pages/                 # Page Object Model classes (atomic selectors + actions)
 tests/                 # Playwright specs
-.github/workflows/     # CI pipelines
+docs/                  # Local project notes (not tracked in git)
+.github/workflows/     # CI pipelines (smoke + regression)
+.github/               # PR checklist template
 playwright.config.ts   # Playwright configuration
 ```
 
@@ -45,6 +48,7 @@ playwright.config.ts   # Playwright configuration
 - logout session check
 - invalid password
 - empty credentials
+- nonexistent email
 
 ### Cart and Checkout
 
@@ -52,24 +56,32 @@ playwright.config.ts   # Playwright configuration
 - category + brand filtering and add to cart
 - remove product from cart
 - proceed to checkout
-- complete checkout and place order
+- complete checkout and place order (payment)
+- empty payment fields blocked
 
 ### Contact Us
 
 - submit form with file attachment
 - submit form without file
-- invalid email scenario (no success message text)
+- invalid email scenario (no success message)
+- navigation via navbar
+
+### Auth guards
+
+- unauthenticated user does not see account management links
 
 ## Data-Driven Approach
 
-Test inputs and fixed expected values are moved to `data/`:
+Data files in `data/` are grouped by domain and split by type:
 
-- `data/signUp.data.ts` - generated signup data
-- `data/contactUs.data.ts` - generated contact data
-- `data/productFilters.data.ts` - category/subcategory/brand filters
-- `data/testConstants.data.ts` - shared constants (messages, checkout/payment values)
+| File                   | Type             | Contents                                                          |
+| ---------------------- | ---------------- | ----------------------------------------------------------------- |
+| `data/auth.data.ts`    | Dynamic + Static | `generateSignupData()`, `authMessages`                            |
+| `data/cart.data.ts`    | Static           | `guestCartCategoryFilter`, `cartStaticData`, `cartMessages`       |
+| `data/contact.data.ts` | Dynamic + Static | `generateContactUsData()`, `contactStaticData`, `contactMessages` |
 
-This reduces hardcoded literals inside specs and keeps maintenance simple.
+- **Dynamic** (`generate*`) — faker-generated, unique per test run, used for inputs
+- **Static** (`*Messages`, `*StaticData`) — deterministic constants used in assertions
 
 ## Getting Started
 
@@ -87,10 +99,16 @@ npx playwright install --with-deps
 
 ### 3) Run tests
 
-Run all tests:
+Run all tests (all browsers):
 
 ```bash
-npx playwright test
+npm test
+```
+
+Run smoke suite only (Chromium, ~5 min):
+
+```bash
+npm run test:smoke
 ```
 
 Run single spec:
@@ -103,6 +121,15 @@ Run headed mode:
 
 ```bash
 npx playwright test --headed
+```
+
+### 4) Lint and format
+
+```bash
+npm run lint          # check for ESLint violations
+npm run lint:fix      # auto-fix where possible
+npm run format        # format all files with Prettier
+npm run format:check  # check formatting without writing
 ```
 
 ## Reports
@@ -124,14 +151,65 @@ This balances speed and stability for the current suite.
 
 ## CI
 
-GitHub Actions workflow is available at:
+GitHub Actions workflow: `.github/workflows/playwright.yml`
 
-- `.github/workflows/playwright.yml`
+Two pipelines:
 
-Pipeline installs dependencies, browsers, runs tests, and uploads HTML report artifact.
+| Pipeline       | Trigger                                      | Scope                                              |
+| -------------- | -------------------------------------------- | -------------------------------------------------- |
+| **Smoke**      | every push                                   | `@smoke` tests, Chromium only, < 15 min            |
+| **Regression** | daily schedule (06:00 UTC) + manual dispatch | all tests, Chromium / Firefox / WebKit in parallel |
+
+Trace and video artifacts are uploaded for failing browser jobs (14-day retention).
+A Job Summary table appears on every run for manual trend monitoring.
+
+PR checklist: `.github/PULL_REQUEST_TEMPLATE.md`
 
 ## Notes and Trade-offs
 
-- Tests include resilience for cookie-consent overlays.
-- Some app behaviors are non-standard (for example validation differences or ad-related redirects), so assertions are adapted to observed behavior to keep tests stable.
-- `Cart as logged user` tests run in serial mode to avoid shared-account state collisions.
+- Tests include resilience for cookie-consent overlays via a shared `addLocatorHandler` in the fixture.
+- `recoverFromVignette()` helper handles google_vignette ad-hash redirects that occur intermittently in CI — it detects the hash and performs a fallback `goto()` to the expected URL.
+- `Cart as logged user` tests run in `serial` mode to avoid shared-account state collisions.
+- Per-suite `retries: 2` is set on suites susceptible to network flakiness; global retries remain 0.
+
+## Debugging Playbook
+
+### Reproducing a CI failure locally
+
+1. Download the **test-results** artifact from the failed GitHub Actions run.
+2. Open the trace:
+   ```bash
+   npx playwright show-trace test-results/<test-folder>/trace.zip
+   ```
+3. Open the video (`.webm`) in any browser to watch the failure frame by frame.
+4. Reproduce with the same browser as the failing job:
+   ```bash
+   npx playwright test --project=webkit --headed
+   ```
+
+### Common flaky patterns and fixes
+
+| Symptom                                          | Root cause                           | Fix                                                                            |
+| ------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------ |
+| `toBeVisible` timeout on navigation              | google_vignette hash appended to URL | Add `recoverFromVignette()` after the triggering click                         |
+| Consent overlay blocks interaction               | `addLocatorHandler` not registered   | Use `signupPage.navigate()` (or POM `navigate()`) instead of raw `page.goto()` |
+| `accountInfoHeader` not found after signup click | Navigation intercepted mid-flight    | Add `recoverFromVignette()` with `expectedUrlPart: "signup"`                   |
+| Serial tests fail in wrong order                 | State leak from previous test        | Ensure `beforeEach` calls `clearCart()` and logs in fresh                      |
+| Soft assertion hides real failures               | Misuse of `expect.soft()`            | Use hard assertions for primary outcomes; soft only for secondary UI checks    |
+
+### Useful debug flags
+
+```bash
+# Step through test interactively
+npx playwright test --debug
+
+# Generate and open trace for a single test
+npx playwright test --trace on tests/cart.spec.ts
+npx playwright show-trace test-results/*/trace.zip
+
+# List all tests without running them
+npx playwright test --list
+
+# Run only @smoke tests
+npm run test:smoke
+```

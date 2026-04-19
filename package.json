@@ -6,7 +6,11 @@
   "scripts": {
     "test": "npx playwright test",
     "test:smoke": "npx playwright test --grep @smoke --project=chromium",
-    "test:regression": "npx playwright test"
+    "test:regression": "npx playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "repository": {
     "type": "git",
@@ -22,7 +26,13 @@
   "homepage": "https://github.com/Pattrick97/portfolioQE#readme",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.10.1",
+    "prettier": "^3.8.3"
   },
   "dependencies": {
     "@faker-js/faker": "^10.4.0"
