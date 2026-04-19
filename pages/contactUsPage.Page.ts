@@ -1,0 +1,78 @@
+import { Locator, Page } from "@playwright/test";
+import type { ContactUsData } from "../data/contactUs.data";
+
+export class ContactUsPage {
+  constructor(private page: Page) {}
+
+  async navigate() {
+    await this.page.addLocatorHandler(
+      this.page.locator(".fc-consent-root"),
+      async () => {
+        const consentButton = this.page.getByRole("button", {
+          name: /consent|agree|accept|zgoda|akcept/i,
+        });
+        if (await consentButton.first().isVisible()) {
+          await consentButton.first().click();
+        }
+      },
+    );
+
+    await this.page.goto("/contact_us");
+  }
+
+  getInTouchHeader(): Locator {
+    return this.page.locator("h2.title.text-center", {
+      hasText: "Get In Touch",
+    });
+  }
+
+  nameInput(): Locator {
+    return this.page.locator("input[data-qa='name']");
+  }
+
+  emailInput(): Locator {
+    return this.page.locator("input[data-qa='email']");
+  }
+
+  subjectInput(): Locator {
+    return this.page.locator("input[data-qa='subject']");
+  }
+
+  messageInput(): Locator {
+    return this.page.locator("textarea[data-qa='message']");
+  }
+
+  uploadFileInput(): Locator {
+    return this.page.locator("input[name='upload_file']");
+  }
+
+  submitButton(): Locator {
+    return this.page.locator("input[data-qa='submit-button']");
+  }
+
+  successAlert(): Locator {
+    return this.page.locator(".status.alert.alert-success");
+  }
+
+  homeButton(): Locator {
+    return this.page.locator("a.btn.btn-success");
+  }
+
+  async fillForm(data: ContactUsData) {
+    await this.nameInput().fill(data.name);
+    await this.emailInput().fill(data.email);
+    await this.subjectInput().fill(data.subject);
+    await this.messageInput().fill(data.message);
+  }
+
+  async uploadFile(filePath: string) {
+    await this.uploadFileInput().setInputFiles(filePath);
+  }
+
+  async submitForm() {
+    this.page.once("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+    await this.submitButton().click();
+  }
+}
