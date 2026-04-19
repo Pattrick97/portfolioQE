@@ -2,8 +2,11 @@ import { expect, test } from "../fixtures/test-fixtures";
 import { generateContactUsData } from "../data/contactUs.data";
 import { ContactUsPage } from "../pages/contactUsPage.Page";
 import { testContactUsData, testMessages } from "../data/testConstants.data";
+import { recoverFromVignette } from "../helpers/vignette.helper";
 
 test.describe("Contact Us", () => {
+  test.describe.configure({ retries: 2 });
+
   test("guest user can submit contact us form", async ({ page }) => {
     const contactUsPage = new ContactUsPage(page);
     const contactData = generateContactUsData();
@@ -20,10 +23,12 @@ test.describe("Contact Us", () => {
     );
 
     await contactUsPage.homeButton().click();
-    if (!/https:\/\/automationexercise\.com\/?$/.test(page.url())) {
-      await page.goto("/");
-    }
+    await recoverFromVignette(page, {
+      expectedUrlPart: "automationexercise.com/",
+      fallbackPath: "/",
+    });
     await expect(page).toHaveURL(/https:\/\/automationexercise\.com\/?$/);
+    await expect.soft(page.getByRole("link", { name: /Home/i })).toBeVisible();
   });
 
   test("guest user can submit contact us form without file attachment", async ({

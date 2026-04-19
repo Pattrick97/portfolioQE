@@ -1,4 +1,5 @@
 import { Locator, Page } from "@playwright/test";
+import { recoverFromVignette } from "../helpers/vignette.helper";
 
 export class ProductsPage {
   constructor(private page: Page) {}
@@ -70,15 +71,10 @@ export class ProductsPage {
       await subCategoryLink.click();
     }
 
-    // CI can occasionally get stuck with an ad/vignette hash. Navigate by href as a stable fallback.
-    if (
-      this.page.url().includes("#google_vignette") ||
-      !this.page.url().includes("category_products")
-    ) {
-      if (subCategoryHref) {
-        await this.page.goto(subCategoryHref);
-      }
-    }
+    await recoverFromVignette(this.page, {
+      expectedUrlPart: "category_products",
+      fallbackHref: subCategoryHref,
+    });
   }
 
   async selectBrand(brand: string) {
@@ -89,14 +85,10 @@ export class ProductsPage {
 
     await brandLink.click();
 
-    if (
-      this.page.url().includes("#google_vignette") ||
-      !this.page.url().includes("brand_products")
-    ) {
-      if (brandHref) {
-        await this.page.goto(brandHref);
-      }
-    }
+    await recoverFromVignette(this.page, {
+      expectedUrlPart: "brand_products",
+      fallbackHref: brandHref,
+    });
   }
 
   productsHeader(): Locator {

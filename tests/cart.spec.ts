@@ -6,6 +6,7 @@ import { SignupPage } from "../pages/signupPage.Page";
 import { generateSignupData, SignupData } from "../data/signUp.data";
 import { guestCartCategoryFilter } from "../data/productFilters.data";
 import { testCheckoutData, testMessages } from "../data/testConstants.data";
+import { recoverFromVignette } from "../helpers/vignette.helper";
 
 async function clearCart(page: Page) {
   const cartPage = new CartPage(page);
@@ -19,6 +20,8 @@ async function clearCart(page: Page) {
 }
 
 test.describe("Cart as guest", () => {
+  test.describe.configure({ retries: 2 });
+
   test("guest user is prompted to login when proceeding to checkout", async ({
     page,
   }) => {
@@ -170,6 +173,7 @@ test.describe("Cart as logged user", () => {
 
     await cartPage.proceedToCheckout();
     await expect(page).toHaveURL(/.*checkout.*/);
+    await expect(cartPage.placeOrderButton()).toBeVisible();
   });
 
   test("user can complete checkout and place order", async ({ page }) => {
@@ -192,12 +196,18 @@ test.describe("Cart as logged user", () => {
     await cartPage.orderComment().fill(testCheckoutData.orderComment);
     await cartPage.placeOrderButton().click();
 
-    // The site can append a vignette hash after click; recover by opening payment directly.
-    if (!/.*payment.*/.test(page.url())) {
-      await page.goto("/payment");
-    }
+    await recoverFromVignette(page, {
+      expectedUrlPart: "payment",
+      fallbackPath: "/payment",
+    });
 
     await expect(page).toHaveURL(/.*payment.*/);
+
+    await expect.soft(cartPage.nameOnCardInput()).toBeVisible();
+    await expect.soft(cartPage.cardNumberInput()).toBeVisible();
+    await expect.soft(cartPage.cvcInput()).toBeVisible();
+    await expect.soft(cartPage.expiryMonthInput()).toBeVisible();
+    await expect.soft(cartPage.expiryYearInput()).toBeVisible();
 
     await cartPage.nameOnCardInput().fill(accountData.firstName);
     await cartPage.cardNumberInput().fill(testCheckoutData.payment.cardNumber);
