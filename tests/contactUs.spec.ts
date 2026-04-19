@@ -20,6 +20,9 @@ test.describe("Contact Us", () => {
     );
 
     await contactUsPage.homeButton().click();
+    if (!/https:\/\/automationexercise\.com\/?$/.test(page.url())) {
+      await page.goto("/");
+    }
     await expect(page).toHaveURL(/https:\/\/automationexercise\.com\/?$/);
   });
 

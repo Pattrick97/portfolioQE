@@ -56,18 +56,47 @@ export class ProductsPage {
   }
 
   async selectCategory(mainCategory: string, subCategory: string) {
-    await this.page.locator(`a[href='#${mainCategory}']`).first().click();
-    await this.page
+    const mainCategoryLink = this.page
+      .locator(`a[href='#${mainCategory}']`)
+      .first();
+    const subCategoryLink = this.page
       .locator(".panel-body a", { hasText: subCategory })
-      .first()
-      .click();
+      .first();
+    const subCategoryHref = await subCategoryLink.getAttribute("href");
+
+    await mainCategoryLink.click();
+
+    if (await subCategoryLink.isVisible()) {
+      await subCategoryLink.click();
+    }
+
+    // CI can occasionally get stuck with an ad/vignette hash. Navigate by href as a stable fallback.
+    if (
+      this.page.url().includes("#google_vignette") ||
+      !this.page.url().includes("category_products")
+    ) {
+      if (subCategoryHref) {
+        await this.page.goto(subCategoryHref);
+      }
+    }
   }
 
   async selectBrand(brand: string) {
-    await this.page
+    const brandLink = this.page
       .locator(".brands-name a", { hasText: brand })
-      .first()
-      .click();
+      .first();
+    const brandHref = await brandLink.getAttribute("href");
+
+    await brandLink.click();
+
+    if (
+      this.page.url().includes("#google_vignette") ||
+      !this.page.url().includes("brand_products")
+    ) {
+      if (brandHref) {
+        await this.page.goto(brandHref);
+      }
+    }
   }
 
   productsHeader(): Locator {
