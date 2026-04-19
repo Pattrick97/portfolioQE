@@ -38,6 +38,7 @@ What they validate:
 - Playwright (`@playwright/test`)
 - TypeScript
 - Faker (`@faker-js/faker`) for dynamic test data
+- k6 for API performance baseline checks
 - ESLint for static code analysis
 - Prettier for formatting consistency
 - GitHub Actions for CI
@@ -273,6 +274,48 @@ Performance checks are implemented with k6 in `perf/k6/api-baseline.js` as a lig
 - Scenario covers `productsList`, `searchProduct`, and `verifyLogin`.
 - Gate conditions use thresholds (`http_req_failed` and per-endpoint p95 durations).
 - This is a trend/budget guardrail for API responsiveness, not a full-scale load test.
+
+### How to run
+
+1. Run a short smoke profile:
+
+```bash
+npm run perf:api:k6:smoke
+```
+
+2. Run full baseline:
+
+```bash
+npm run perf:api:k6
+```
+
+3. (Optional) override runtime parameters:
+
+```bash
+BASE_URL=https://automationexercise.com/api VUS=12 DURATION=60s npm run perf:api:k6
+```
+
+### Where to see results
+
+- Results are printed directly in the terminal after each run.
+- Focus first on the **THRESHOLDS** section (pass/fail gates).
+- Then check **TOTAL RESULTS** and **HTTP** sections for latency distributions and error rate.
+
+### How to read first-run output
+
+1. Check `http_req_failed` first:
+
+- target is below threshold (`rate < 0.02` in this baseline)
+
+2. Check endpoint p95 thresholds:
+
+- `http_req_duration{endpoint:productsList}`
+- `http_req_duration{endpoint:searchProduct}`
+- `http_req_duration{endpoint:verifyLogin}`
+
+3. Use `avg`, `p90`, `p95`, and `max` from HTTP section as trend signals over time
+
+Tip: compare several runs instead of relying on one run only. Single-run spikes can be network noise.
 
 ## Notes and Trade-offs
 
