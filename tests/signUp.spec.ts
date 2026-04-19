@@ -56,3 +56,48 @@ test("user cannot sign up with existing email", async ({ page }) => {
   await signupPage.startSignup(data);
   await expect(signupPage.emailAlreadyExistsMessage()).toBeVisible();
 });
+
+test("registration form blocks account creation when required fields are empty", async ({
+  page,
+}) => {
+  const data = generateSignupData();
+  const signupPage = new SignupPage(page);
+
+  await signupPage.navigate();
+  await signupPage.startSignup(data);
+  await expect(signupPage.accountInfoHeader()).toBeVisible();
+
+  await signupPage.createAccount();
+
+  await expect(page).toHaveURL(/.*signup.*/);
+  await expect(page.locator("#password:invalid")).toHaveCount(1);
+});
+
+test("user can register, log out and log in again", async ({ page }) => {
+  const data = generateSignupData();
+  const signupPage = new SignupPage(page);
+
+  await signupPage.navigate();
+  await signupPage.startSignup(data);
+  await expect(signupPage.accountInfoHeader()).toBeVisible();
+
+  await signupPage.fillSignUpForm(data);
+  await signupPage.createAccount();
+  await expect(signupPage.accountCreatedHeader()).toContainText(
+    "Account Created!",
+  );
+
+  await signupPage.continueAfterAccountCreated();
+  await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
+
+  await signupPage.logoutLink().click();
+  await expect(page).toHaveURL(/.*login.*/);
+
+  await signupPage.login(data.email, data.password);
+  await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
+
+  await signupPage.deleteAccount();
+  await expect(signupPage.accountDeletedHeader()).toContainText(
+    "Account Deleted!",
+  );
+});

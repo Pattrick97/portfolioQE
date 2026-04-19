@@ -4,6 +4,18 @@ export class ProductsPage {
   constructor(private page: Page) {}
 
   async navigate() {
+    await this.page.addLocatorHandler(
+      this.page.locator(".fc-consent-root"),
+      async () => {
+        const consentButton = this.page.getByRole("button", {
+          name: /consent|agree|accept|zgoda|akcept/i,
+        });
+        if (await consentButton.first().isVisible()) {
+          await consentButton.first().click();
+        }
+      },
+    );
+
     await this.page.goto("/products");
   }
 
@@ -22,6 +34,17 @@ export class ProductsPage {
     await card.locator("a.add-to-cart").first().click();
 
     return productName;
+  }
+
+  async addProductToCartByIndex(index: number): Promise<string> {
+    const card = this.productCards().nth(index);
+    const productName = await card.locator("p").first().innerText();
+    await card.locator("a.add-to-cart").first().click();
+    return productName;
+  }
+
+  async closeAddToCartModal() {
+    await this.continueShoppingButton().click();
   }
 
   continueShoppingButton(): Locator {
