@@ -7,6 +7,8 @@
     "test": "npx playwright test",
     "test:smoke": "npx playwright test --grep @smoke --project=chromium",
     "test:regression": "npx playwright test",
+    "test:api": "npx playwright test --project=api",
+    "test:api:smoke": "npx playwright test --project=api --grep @smoke",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

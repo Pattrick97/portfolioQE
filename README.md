@@ -1,6 +1,6 @@
 # portfolioQE
 
-End-to-end UI automation portfolio project built with Playwright and TypeScript against https://automationexercise.com.
+End-to-end UI + API automation portfolio project built with Playwright and TypeScript against https://automationexercise.com.
 
 ## Goals
 
@@ -28,7 +28,7 @@ models/                # TypeScript interfaces for test data shapes
 pages/                 # Page Object Model classes (atomic selectors + actions)
 tests/                 # Playwright specs
 docs/                  # Local project notes (not tracked in git)
-.github/workflows/     # CI pipelines (smoke + regression)
+.github/workflows/     # CI pipelines (api smoke + smoke + regression)
 .github/               # PR checklist template
 playwright.config.ts   # Playwright configuration
 ```
@@ -70,6 +70,24 @@ playwright.config.ts   # Playwright configuration
 
 - unauthenticated user does not see account management links
 
+### API catalog
+
+- products list endpoint returns 200 with non-empty payload
+- brands list endpoint returns 200 with non-empty payload
+- unsupported method on products endpoint returns 405
+
+### API auth
+
+- verifyLogin returns 404 for unknown user
+- verifyLogin returns 400 when required params are missing
+- verifyLogin rejects GET with 405
+
+### API search and user details
+
+- searchProduct returns matching catalog payload for query
+- searchProduct rejects GET with 405
+- getUserDetailByEmail returns 404 for nonexistent account
+
 ## Data-Driven Approach
 
 Data files in `data/` are grouped by domain and split by type:
@@ -109,6 +127,18 @@ Run smoke suite only (Chromium, ~5 min):
 
 ```bash
 npm run test:smoke
+```
+
+Run API smoke suite:
+
+```bash
+npm run test:api:smoke
+```
+
+Run full API suite:
+
+```bash
+npm run test:api
 ```
 
 Run single spec:
@@ -153,10 +183,11 @@ This balances speed and stability for the current suite.
 
 GitHub Actions workflow: `.github/workflows/playwright.yml`
 
-Two pipelines:
+Three pipelines:
 
 | Pipeline       | Trigger                                      | Scope                                              |
 | -------------- | -------------------------------------------- | -------------------------------------------------- |
+| **API Smoke**  | every push                                   | `@smoke` API tests (`project=api`)                 |
 | **Smoke**      | every push                                   | `@smoke` tests, Chromium only, < 15 min            |
 | **Regression** | daily schedule (06:00 UTC) + manual dispatch | all tests, Chromium / Firefox / WebKit in parallel |
 
