@@ -11,6 +11,36 @@ End-to-end UI + API automation portfolio project built with Playwright and TypeS
   - contact form
 - Keep tests readable, data-driven, and CI-friendly.
 
+## QE Approach
+
+This suite is designed as a practical QE portfolio, not only as a list of happy-path checks.
+
+- **Risk-based coverage first**: core business paths (signup/login/cart/checkout/contact) are covered first, then hardened with negative scenarios (missing fields, wrong methods, nonexistent users, empty cart/payment guards).
+- **Isolation over hidden coupling**: shared account setup moved to worker fixture (`registeredUser`), while state-sensitive suites keep per-test reset (`beforeEach` with `loginAs()` + `clearCart()`).
+- **Deterministic assertions**: assertions focus on user-visible outcomes and API contract signals (`responseCode`, message, URL/state), avoiding fragile implementation details.
+- **Data strategy by intent**: dynamic data (faker) prevents collisions; static constants keep assertions stable and readable.
+- **Stability engineering**: known external flakiness sources (cookie overlays, `#google_vignette`) are handled centrally via fixtures/helpers rather than ad-hoc waits.
+- **Fast feedback loops**: API smoke + UI smoke on every push, full regression on schedule/manual trigger, so defects are detected early without blocking development velocity.
+
+## API Testing Strategy
+
+Current API tests are primarily **consumer-side contract checks** with negative protocol/validation coverage.
+
+What they validate:
+
+- endpoint availability and basic response contract (`responseCode`, key payload fields, message semantics)
+- allowed/disallowed HTTP methods (e.g., `405` behavior)
+- input validation behavior for missing/invalid parameters (`400` paths)
+- expected business outcomes for known invalid identities (`404` paths)
+
+What they are **not** (currently):
+
+- provider-published schema/version contract testing (e.g., Pact/OpenAPI schema conformance gates)
+- performance/load testing
+- security testing (authz, injection, fuzzing)
+
+So in practice: this suite sits between classic API functional tests and lightweight contract verification from the consumer perspective.
+
 ## Tech Stack
 
 - Playwright (`@playwright/test`)
