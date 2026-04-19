@@ -66,4 +66,14 @@ test.describe("Contact Us", () => {
     await expect(contactUsPage.successAlert()).toHaveText(/^\s*$/);
     await expect(page).toHaveURL(/.*contact_us.*/);
   });
+
+  test("user can navigate to contact us page via navbar", async ({ page }) => {
+    await page.goto("/");
+
+    await page.locator("a[href='/contact_us']").click();
+
+    await expect(page).toHaveURL(/.*contact_us.*/);
+    const contactUsPage = new ContactUsPage(page);
+    await expect(contactUsPage.getInTouchHeader()).toBeVisible();
+  });
 });

@@ -222,4 +222,28 @@ test.describe("Cart as logged user", () => {
       testMessages.orderPlaced,
     );
   });
+
+  test("user cannot place order with empty payment fields", async ({
+    page,
+  }) => {
+    const productsPage = new ProductsPage(page);
+    const cartPage = new CartPage(page);
+
+    await productsPage.navigate();
+    await productsPage.addProductToCartByIndex(0);
+    await expect(productsPage.continueShoppingButton()).toBeVisible();
+    await productsPage.closeAddToCartModal();
+
+    await cartPage.navigate();
+    await cartPage.proceedToCheckout();
+    await expect(page).toHaveURL(/.*checkout.*/);
+
+    await cartPage.placeOrderButton().click();
+    await expect(page).toHaveURL(/.*payment.*/);
+
+    await cartPage.payAndConfirmOrderButton().click();
+
+    await expect(page).toHaveURL(/.*payment.*/);
+    await expect(cartPage.orderPlacedHeader()).toHaveCount(0);
+  });
 });

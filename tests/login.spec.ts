@@ -78,4 +78,26 @@ test.describe("Login", () => {
     await expect(page).toHaveURL(/.*login.*/);
     await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
   });
+
+  test("user cannot log in with nonexistent email", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+
+    await signupPage.navigate();
+    await signupPage.login("nonexistent_user@example.com", "SomePassword1!");
+
+    await expect(
+      page.locator("p", { hasText: testMessages.invalidLogin }),
+    ).toBeVisible();
+    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
+  });
+
+  test("unauthenticated user does not see account management links", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    await expect(page.locator("a[href='/delete_account']")).toHaveCount(0);
+    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
+    await expect(page.locator("a[href='/login']")).toBeVisible();
+  });
 });
