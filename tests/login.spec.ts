@@ -1,6 +1,7 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures/test-fixtures";
 import { generateSignupData, SignupData } from "../data/signUp.data";
 import { SignupPage } from "../pages/signupPage.Page";
+import { testMessages } from "../data/testConstants.data";
 
 test.describe("Login", () => {
   let accountData: SignupData;
@@ -16,7 +17,7 @@ test.describe("Login", () => {
     await signupPage.fillSignUpForm(accountData);
     await signupPage.createAccount();
     await expect(signupPage.accountCreatedHeader()).toContainText(
-      "Account Created!",
+      testMessages.accountCreated,
     );
     await page.close();
   });
@@ -29,7 +30,7 @@ test.describe("Login", () => {
     await signupPage.login(accountData.email, accountData.password);
     await signupPage.deleteAccount();
     await expect(signupPage.accountDeletedHeader()).toContainText(
-      "Account Deleted!",
+      testMessages.accountDeleted,
     );
     await page.close();
   });
@@ -43,18 +44,6 @@ test.describe("Login", () => {
     await expect(signupPage.loggedInAs(accountData.firstName)).toBeVisible();
   });
 
-  test("user cannot log in with invalid password", async ({ page }) => {
-    const signupPage = new SignupPage(page);
-
-    await signupPage.navigate();
-    await signupPage.login(accountData.email, `${accountData.password}wrong`);
-
-    await expect(
-      page.locator("p", { hasText: "Your email or password is incorrect!" }),
-    ).toBeVisible();
-    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
-  });
-
   test("logout ends authenticated session", async ({ page }) => {
     const signupPage = new SignupPage(page);
 
@@ -66,5 +55,27 @@ test.describe("Login", () => {
     await expect(page).toHaveURL(/.*login.*/);
     await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
     await expect(page.locator("a[href='/login']")).toBeVisible();
+  });
+
+  test("user cannot log in with invalid password", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+
+    await signupPage.navigate();
+    await signupPage.login(accountData.email, `${accountData.password}wrong`);
+
+    await expect(
+      page.locator("p", { hasText: testMessages.invalidLogin }),
+    ).toBeVisible();
+    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
+  });
+
+  test("user cannot log in with empty credentials", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+
+    await signupPage.navigate();
+    await signupPage.login("", "");
+
+    await expect(page).toHaveURL(/.*login.*/);
+    await expect(page.locator("a", { hasText: "Logged in as" })).toHaveCount(0);
   });
 });

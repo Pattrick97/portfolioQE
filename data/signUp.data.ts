@@ -7,7 +7,6 @@ export function generateSignupData(): SignupData {
   return {
     // Account Info
     title: gender,
-    name: faker.person.fullName(),
     email: faker.internet.email(),
     password: faker.internet.password(),
 

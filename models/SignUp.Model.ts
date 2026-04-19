@@ -1,7 +1,6 @@
 export interface SignupData {
   title: "Mr" | "Mrs";
   firstName: string;
-  name: string;
   lastName: string;
   email: string;
   password: string;

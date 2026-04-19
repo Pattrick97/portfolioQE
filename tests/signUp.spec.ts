@@ -1,103 +1,107 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures/test-fixtures";
 import { generateSignupData } from "../data/signUp.data";
 import { SignupPage } from "../pages/signupPage.Page";
+import { testMessages } from "../data/testConstants.data";
 
-test("user can sign up", async ({ page }) => {
-  const data = generateSignupData();
-  const signupPage = new SignupPage(page);
+test.describe("Signup", () => {
+  test("user can sign up", async ({ page }) => {
+    const data = generateSignupData();
+    const signupPage = new SignupPage(page);
 
-  await signupPage.navigate();
-  await expect(signupPage.newUserSignupHeader()).toBeVisible();
+    await signupPage.navigate();
+    await expect(signupPage.newUserSignupHeader()).toBeVisible();
 
-  await signupPage.startSignup(data);
-  await Promise.race([
-    expect(signupPage.accountInfoHeader()).toBeVisible(),
-    expect(signupPage.emailAlreadyExistsMessage()).toBeVisible(),
-  ]);
-  await expect(signupPage.emailAlreadyExistsMessage()).toHaveCount(0);
+    await signupPage.startSignup(data);
+    await Promise.race([
+      expect(signupPage.accountInfoHeader()).toBeVisible(),
+      expect(signupPage.emailAlreadyExistsMessage()).toBeVisible(),
+    ]);
+    await expect(signupPage.emailAlreadyExistsMessage()).toHaveCount(0);
 
-  await signupPage.fillSignUpForm(data);
-  await signupPage.createAccount();
-  await expect(page).toHaveURL(/.*account_created.*/);
-  await expect(signupPage.accountCreatedHeader()).toContainText(
-    "Account Created!",
-  );
+    await signupPage.fillSignUpForm(data);
+    await signupPage.createAccount();
+    await expect(page).toHaveURL(/.*account_created.*/);
+    await expect(signupPage.accountCreatedHeader()).toContainText(
+      testMessages.accountCreated,
+    );
 
-  await signupPage.continueAfterAccountCreated();
-  await signupPage.deleteAccount();
-  await expect(signupPage.accountDeletedHeader()).toContainText(
-    "Account Deleted!",
-  );
-  await expect(page).toHaveURL(/.*delete_account.*/);
-});
-test("user cannot sign up with existing email", async ({ page }) => {
-  const data = generateSignupData();
-  const signupPage = new SignupPage(page);
+    await signupPage.continueAfterAccountCreated();
+    await signupPage.deleteAccount();
+    await expect(signupPage.accountDeletedHeader()).toContainText(
+      testMessages.accountDeleted,
+    );
+    await expect(page).toHaveURL(/.*delete_account.*/);
+  });
 
-  await signupPage.navigate();
-  await expect(signupPage.newUserSignupHeader()).toBeVisible();
+  test("user can register, log out and log in again", async ({ page }) => {
+    const data = generateSignupData();
+    const signupPage = new SignupPage(page);
 
-  await signupPage.startSignup(data);
-  await expect(signupPage.accountInfoHeader()).toBeVisible();
-  await expect(signupPage.emailAlreadyExistsMessage()).toHaveCount(0);
+    await signupPage.navigate();
+    await signupPage.startSignup(data);
+    await expect(signupPage.accountInfoHeader()).toBeVisible();
 
-  await signupPage.fillSignUpForm(data);
-  await signupPage.createAccount();
-  await expect(signupPage.accountCreatedHeader()).toContainText(
-    "Account Created!",
-  );
+    await signupPage.fillSignUpForm(data);
+    await signupPage.createAccount();
+    await expect(signupPage.accountCreatedHeader()).toContainText(
+      testMessages.accountCreated,
+    );
 
-  await page.goto("/logout");
-  await expect(page).toHaveURL(/.*login.*/);
+    await signupPage.continueAfterAccountCreated();
+    await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
 
-  await page.goto("/login");
-  await expect(signupPage.newUserSignupHeader()).toBeVisible();
+    await signupPage.logoutLink().click();
+    await expect(page).toHaveURL(/.*login.*/);
 
-  await signupPage.startSignup(data);
-  await expect(signupPage.emailAlreadyExistsMessage()).toBeVisible();
-});
+    await signupPage.login(data.email, data.password);
+    await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
 
-test("registration form blocks account creation when required fields are empty", async ({
-  page,
-}) => {
-  const data = generateSignupData();
-  const signupPage = new SignupPage(page);
+    await signupPage.deleteAccount();
+    await expect(signupPage.accountDeletedHeader()).toContainText(
+      testMessages.accountDeleted,
+    );
+  });
 
-  await signupPage.navigate();
-  await signupPage.startSignup(data);
-  await expect(signupPage.accountInfoHeader()).toBeVisible();
+  test("user cannot sign up with existing email", async ({ page }) => {
+    const data = generateSignupData();
+    const signupPage = new SignupPage(page);
 
-  await signupPage.createAccount();
+    await signupPage.navigate();
+    await expect(signupPage.newUserSignupHeader()).toBeVisible();
 
-  await expect(page).toHaveURL(/.*signup.*/);
-  await expect(page.locator("#password:invalid")).toHaveCount(1);
-});
+    await signupPage.startSignup(data);
+    await expect(signupPage.accountInfoHeader()).toBeVisible();
+    await expect(signupPage.emailAlreadyExistsMessage()).toHaveCount(0);
 
-test("user can register, log out and log in again", async ({ page }) => {
-  const data = generateSignupData();
-  const signupPage = new SignupPage(page);
+    await signupPage.fillSignUpForm(data);
+    await signupPage.createAccount();
+    await expect(signupPage.accountCreatedHeader()).toContainText(
+      testMessages.accountCreated,
+    );
 
-  await signupPage.navigate();
-  await signupPage.startSignup(data);
-  await expect(signupPage.accountInfoHeader()).toBeVisible();
+    await page.goto("/logout");
+    await expect(page).toHaveURL(/.*login.*/);
 
-  await signupPage.fillSignUpForm(data);
-  await signupPage.createAccount();
-  await expect(signupPage.accountCreatedHeader()).toContainText(
-    "Account Created!",
-  );
+    await page.goto("/login");
+    await expect(signupPage.newUserSignupHeader()).toBeVisible();
 
-  await signupPage.continueAfterAccountCreated();
-  await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
+    await signupPage.startSignup(data);
+    await expect(signupPage.emailAlreadyExistsMessage()).toBeVisible();
+  });
 
-  await signupPage.logoutLink().click();
-  await expect(page).toHaveURL(/.*login.*/);
+  test("registration form blocks account creation when required fields are empty", async ({
+    page,
+  }) => {
+    const data = generateSignupData();
+    const signupPage = new SignupPage(page);
 
-  await signupPage.login(data.email, data.password);
-  await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
+    await signupPage.navigate();
+    await signupPage.startSignup(data);
+    await expect(signupPage.accountInfoHeader()).toBeVisible();
 
-  await signupPage.deleteAccount();
-  await expect(signupPage.accountDeletedHeader()).toContainText(
-    "Account Deleted!",
-  );
+    await signupPage.createAccount();
+
+    await expect(page).toHaveURL(/.*signup.*/);
+    await expect(page.locator("#password:invalid")).toHaveCount(1);
+  });
 });

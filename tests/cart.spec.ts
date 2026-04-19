@@ -1,9 +1,11 @@
-import { expect, Page, test } from "@playwright/test";
+import { Page } from "@playwright/test";
+import { expect, test } from "../fixtures/test-fixtures";
 import { ProductsPage } from "../pages/productsPage.Page";
 import { CartPage } from "../pages/cartPage.Page";
 import { SignupPage } from "../pages/signupPage.Page";
 import { generateSignupData, SignupData } from "../data/signUp.data";
 import { guestCartCategoryFilter } from "../data/productFilters.data";
+import { testCheckoutData, testMessages } from "../data/testConstants.data";
 
 async function clearCart(page: Page) {
   const cartPage = new CartPage(page);
@@ -104,7 +106,7 @@ test.describe("Cart as logged user", () => {
     await signupPage.fillSignUpForm(accountData);
     await signupPage.createAccount();
     await expect(signupPage.accountCreatedHeader()).toContainText(
-      "Account Created!",
+      testMessages.accountCreated,
     );
     await page.close();
   });
@@ -117,7 +119,7 @@ test.describe("Cart as logged user", () => {
     await signupPage.login(accountData.email, accountData.password);
     await page.goto("/delete_account");
     await expect(signupPage.accountDeletedHeader()).toContainText(
-      "Account Deleted!",
+      testMessages.accountDeleted,
     );
     await page.close();
   });
@@ -129,6 +131,24 @@ test.describe("Cart as logged user", () => {
     await expect(signupPage.loggedInAs(accountData.firstName)).toBeVisible();
 
     await clearCart(page);
+  });
+
+  test("user can remove product from cart", async ({ page }) => {
+    const productsPage = new ProductsPage(page);
+    const cartPage = new CartPage(page);
+
+    await productsPage.navigate();
+    await expect(page).toHaveURL(/.*products.*/);
+
+    await productsPage.addProductToCartByIndex(0);
+    await expect(productsPage.continueShoppingButton()).toBeVisible();
+    await productsPage.closeAddToCartModal();
+
+    await cartPage.navigate();
+    await expect(cartPage.cartRows()).toHaveCount(1);
+
+    await cartPage.removeFirstItemFromCart();
+    await expect(cartPage.cartRows()).toHaveCount(0);
   });
 
   test("user can add a random product to cart and proceed to checkout", async ({
@@ -152,7 +172,7 @@ test.describe("Cart as logged user", () => {
     await expect(page).toHaveURL(/.*checkout.*/);
   });
 
-  test("user can remove product from cart", async ({ page }) => {
+  test("user can complete checkout and place order", async ({ page }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 
@@ -166,7 +186,30 @@ test.describe("Cart as logged user", () => {
     await cartPage.navigate();
     await expect(cartPage.cartRows()).toHaveCount(1);
 
-    await cartPage.removeFirstItemFromCart();
-    await expect(cartPage.cartRows()).toHaveCount(0);
+    await cartPage.proceedToCheckout();
+    await expect(page).toHaveURL(/.*checkout.*/);
+
+    await cartPage.orderComment().fill(testCheckoutData.orderComment);
+    await cartPage.placeOrderButton().click();
+
+    // The site can append a vignette hash after click; recover by opening payment directly.
+    if (!/.*payment.*/.test(page.url())) {
+      await page.goto("/payment");
+    }
+
+    await expect(page).toHaveURL(/.*payment.*/);
+
+    await cartPage.nameOnCardInput().fill(accountData.firstName);
+    await cartPage.cardNumberInput().fill(testCheckoutData.payment.cardNumber);
+    await cartPage.cvcInput().fill(testCheckoutData.payment.cvc);
+    await cartPage
+      .expiryMonthInput()
+      .fill(testCheckoutData.payment.expiryMonth);
+    await cartPage.expiryYearInput().fill(testCheckoutData.payment.expiryYear);
+    await cartPage.payAndConfirmOrderButton().click();
+
+    await expect(cartPage.orderPlacedHeader()).toContainText(
+      testMessages.orderPlaced,
+    );
   });
 });

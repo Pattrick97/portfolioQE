@@ -1,13 +1,17 @@
-import { test as base } from "@playwright/test";
+import { expect, test as base } from "@playwright/test";
+
+export { expect };
 
 export const test = base.extend({
   page: async ({ page }, use) => {
-    await page.goto("/login");
-
-    const consentButton = page.getByRole("button", { name: /consent/i });
-    if (await consentButton.isVisible()) {
-      await consentButton.click();
-    }
+    await page.addLocatorHandler(page.locator(".fc-consent-root"), async () => {
+      const consentButton = page.getByRole("button", {
+        name: /consent|agree|accept|zgoda|akcept/i,
+      });
+      if (await consentButton.first().isVisible()) {
+        await consentButton.first().click();
+      }
+    });
 
     await use(page);
   },
