@@ -16,6 +16,8 @@ End-to-end UI + API automation portfolio project built with Playwright and TypeS
 - Playwright (`@playwright/test`)
 - TypeScript
 - Faker (`@faker-js/faker`) for dynamic test data
+- ESLint for static code analysis
+- Prettier for formatting consistency
 - GitHub Actions for CI
 
 ## Project Structure
@@ -23,10 +25,11 @@ End-to-end UI + API automation portfolio project built with Playwright and TypeS
 ```text
 data/                  # Test data — dynamic generators (faker) and deterministic constants
 fixtures/              # Shared Playwright fixture (consent handler, test + expect exports)
-helpers/               # Workflow helpers (auth flows, cart cleanup, vignette recovery)
+helpers/               # Workflow helpers (auth, cart, checkout flow, API assertions, vignette recovery)
 models/                # TypeScript interfaces for test data shapes
 pages/                 # Page Object Model classes (atomic selectors + actions)
 tests/                 # Playwright specs
+tests/api/             # API contract specs (catalog, auth, search/user details)
 docs/                  # Local project notes (not tracked in git)
 .github/workflows/     # CI pipelines (api smoke + smoke + regression)
 .github/               # PR checklist template
@@ -128,7 +131,7 @@ npx playwright install --with-deps
 
 ### 3) Run tests
 
-Run all tests (all browsers):
+Run all projects (UI + API):
 
 ```bash
 npm test
@@ -231,13 +234,13 @@ PR checklist: `.github/PULL_REQUEST_TEMPLATE.md`
 
 ### Common flaky patterns and fixes
 
-| Symptom                                          | Root cause                           | Fix                                                                            |
-| ------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------ |
-| `toBeVisible` timeout on navigation              | google_vignette hash appended to URL | Add `recoverFromVignette()` after the triggering click                         |
-| Consent overlay blocks interaction               | `addLocatorHandler` not registered   | Use `signupPage.navigate()` (or POM `navigate()`) instead of raw `page.goto()` |
-| `accountInfoHeader` not found after signup click | Navigation intercepted mid-flight    | Add `recoverFromVignette()` with `expectedUrlPart: "signup"`                   |
-| Serial tests fail in wrong order                 | State leak from previous test        | Ensure `beforeEach` calls `clearCart()` and logs in fresh                      |
-| Soft assertion hides real failures               | Misuse of `expect.soft()`            | Use hard assertions for primary outcomes; soft only for secondary UI checks    |
+| Symptom                                          | Root cause                           | Fix                                                                                         |
+| ------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `toBeVisible` timeout on navigation              | google_vignette hash appended to URL | Add `recoverFromVignette()` after the triggering click                                      |
+| Consent overlay blocks interaction               | shared fixture not used              | Import `test` from `fixtures/test-fixtures.ts` (not directly from `@playwright/test`)       |
+| `accountInfoHeader` not found after signup click | Navigation intercepted mid-flight    | Add `recoverFromVignette()` with fallback to the expected route (for signup flow: `/login`) |
+| Serial tests fail in wrong order                 | State leak from previous test        | Ensure `beforeEach` calls `clearCart()` and logs in fresh                                   |
+| Soft assertion hides real failures               | Misuse of `expect.soft()`            | Use hard assertions for primary outcomes; soft only for secondary UI checks                 |
 
 ### Useful debug flags
 

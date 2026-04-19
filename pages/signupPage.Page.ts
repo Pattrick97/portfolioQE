@@ -74,10 +74,6 @@ export class SignupPage {
     return this.page.locator('h2[data-qa="account-created"], h2:has-text("Account Created!")');
   }
 
-  continueButton(): Locator {
-    return this.page.locator('a[data-qa="continue-button"]');
-  }
-
   loggedInAs(userName: string): Locator {
     return this.page.locator("a", { hasText: `Logged in as ${userName}` });
   }

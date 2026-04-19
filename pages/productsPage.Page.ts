@@ -5,17 +5,14 @@ export class ProductsPage {
   constructor(private page: Page) {}
 
   async navigate() {
-    await this.page.addLocatorHandler(
-      this.page.locator(".fc-consent-root"),
-      async () => {
-        const consentButton = this.page.getByRole("button", {
-          name: /consent|agree|accept|zgoda|akcept/i,
-        });
-        if (await consentButton.first().isVisible()) {
-          await consentButton.first().click();
-        }
-      },
-    );
+    await this.page.addLocatorHandler(this.page.locator(".fc-consent-root"), async () => {
+      const consentButton = this.page.getByRole("button", {
+        name: /consent|agree|accept|zgoda|akcept/i,
+      });
+      if (await consentButton.first().isVisible()) {
+        await consentButton.first().click();
+      }
+    });
 
     await this.page.goto("/products");
   }
@@ -52,17 +49,9 @@ export class ProductsPage {
     return this.page.getByRole("button", { name: "Continue Shopping" });
   }
 
-  viewCartLink(): Locator {
-    return this.page.locator('a[href="/view_cart"]').first();
-  }
-
   async selectCategory(mainCategory: string, subCategory: string) {
-    const mainCategoryLink = this.page
-      .locator(`a[href='#${mainCategory}']`)
-      .first();
-    const subCategoryLink = this.page
-      .locator(".panel-body a", { hasText: subCategory })
-      .first();
+    const mainCategoryLink = this.page.locator(`a[href='#${mainCategory}']`).first();
+    const subCategoryLink = this.page.locator(".panel-body a", { hasText: subCategory }).first();
     const subCategoryHref = await subCategoryLink.getAttribute("href");
 
     await mainCategoryLink.click();
@@ -78,9 +67,7 @@ export class ProductsPage {
   }
 
   async selectBrand(brand: string) {
-    const brandLink = this.page
-      .locator(".brands-name a", { hasText: brand })
-      .first();
+    const brandLink = this.page.locator(".brands-name a", { hasText: brand }).first();
     const brandHref = await brandLink.getAttribute("href");
 
     await brandLink.click();

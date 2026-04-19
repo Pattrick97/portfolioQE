@@ -62,10 +62,7 @@ test.describe("Signup", () => {
     await expect(signupPage.newUserSignupHeader()).toBeVisible();
 
     await signupPage.startSignup(data);
-    await recoverFromVignette(page, {
-      expectedUrlPart: "signup",
-      fallbackPath: "/signup",
-    });
+    await recoverFromVignette(page, { fallbackPath: "/login" });
     await expect(signupPage.accountInfoHeader()).toBeVisible();
     await expect(signupPage.emailAlreadyExistsMessage()).toHaveCount(0);
 
@@ -82,10 +79,7 @@ test.describe("Signup", () => {
     await expect(signupPage.newUserSignupHeader()).toBeVisible();
 
     await signupPage.startSignup(data);
-    await recoverFromVignette(page, {
-      expectedUrlPart: "signup",
-      fallbackPath: "/signup",
-    });
+    await recoverFromVignette(page, { fallbackPath: "/login" });
     await expect(signupPage.emailAlreadyExistsMessage()).toBeVisible();
   });
 
