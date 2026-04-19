@@ -1,6 +1,7 @@
 import { expect, test } from "../fixtures/test-fixtures";
 import { generateSignupData, authMessages } from "../data/auth.data";
 import { SignupPage } from "../pages/signupPage.Page";
+import { recoverFromVignette } from "../helpers/vignette.helper";
 
 test.describe("Signup", () => {
   test("user can sign up @smoke", async ({ page }) => {
@@ -69,6 +70,10 @@ test.describe("Signup", () => {
     await expect(signupPage.newUserSignupHeader()).toBeVisible();
 
     await signupPage.startSignup(data);
+    await recoverFromVignette(page, {
+      expectedUrlPart: "signup",
+      fallbackPath: "/signup",
+    });
     await expect(signupPage.accountInfoHeader()).toBeVisible();
     await expect(signupPage.emailAlreadyExistsMessage()).toHaveCount(0);
 
@@ -78,13 +83,19 @@ test.describe("Signup", () => {
       authMessages.accountCreated,
     );
 
-    await page.goto("/logout");
+    await signupPage.continueAfterAccountCreated();
+    await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
+    await signupPage.logoutLink().click();
     await expect(page).toHaveURL(/.*login.*/);
 
-    await page.goto("/login");
+    await signupPage.navigate();
     await expect(signupPage.newUserSignupHeader()).toBeVisible();
 
     await signupPage.startSignup(data);
+    await recoverFromVignette(page, {
+      expectedUrlPart: "signup",
+      fallbackPath: "/signup",
+    });
     await expect(signupPage.emailAlreadyExistsMessage()).toBeVisible();
   });
 
