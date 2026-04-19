@@ -3,10 +3,7 @@ import { SignupPage } from "../pages/signupPage.Page";
 import { SignupData, authMessages } from "../data/auth.data";
 import { recoverFromVignette } from "./vignette.helper";
 
-export async function createAccount(
-  browser: Browser,
-  data: SignupData,
-): Promise<void> {
+export async function createAccount(browser: Browser, data: SignupData): Promise<void> {
   const page = await browser.newPage();
   const signupPage = new SignupPage(page);
 
@@ -15,25 +12,18 @@ export async function createAccount(
   await expect(signupPage.accountInfoHeader()).toBeVisible();
   await signupPage.fillSignUpForm(data);
   await signupPage.createAccount();
-  await expect(signupPage.accountCreatedHeader()).toContainText(
-    authMessages.accountCreated,
-  );
+  await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
   await page.close();
 }
 
-export async function deleteAccount(
-  browser: Browser,
-  data: SignupData,
-): Promise<void> {
+export async function deleteAccount(browser: Browser, data: SignupData): Promise<void> {
   const page = await browser.newPage();
   const signupPage = new SignupPage(page);
 
   await signupPage.navigate();
   await signupPage.login(data.email, data.password);
   await signupPage.deleteAccount();
-  await expect(signupPage.accountDeletedHeader()).toContainText(
-    authMessages.accountDeleted,
-  );
+  await expect(signupPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
   await page.close();
 }
 

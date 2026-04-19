@@ -2,11 +2,7 @@ import { expect, test } from "../fixtures/test-fixtures";
 import { ProductsPage } from "../pages/productsPage.Page";
 import { CartPage } from "../pages/cartPage.Page";
 import { generateSignupData, SignupData } from "../data/auth.data";
-import {
-  guestCartCategoryFilter,
-  cartStaticData,
-  cartMessages,
-} from "../data/cart.data";
+import { guestCartCategoryFilter, cartStaticData, cartMessages } from "../data/cart.data";
 import { recoverFromVignette } from "../helpers/vignette.helper";
 import { createAccount, deleteAccount, loginAs } from "../helpers/auth.helper";
 import { clearCart } from "../helpers/cart.helper";
@@ -14,9 +10,7 @@ import { clearCart } from "../helpers/cart.helper";
 test.describe("Cart as guest", () => {
   test.describe.configure({ retries: 2 });
 
-  test("guest user is prompted to login when proceeding to checkout", async ({
-    page,
-  }) => {
+  test("guest user is prompted to login when proceeding to checkout", async ({ page }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 
@@ -42,9 +36,7 @@ test.describe("Cart as guest", () => {
     }
   });
 
-  test("guest user can filter by category and brand and add products to cart", async ({
-    page,
-  }) => {
+  test("guest user can filter by category and brand and add products to cart", async ({ page }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 
@@ -122,9 +114,7 @@ test.describe("Cart as logged user", () => {
     await expect(cartPage.cartRows()).toHaveCount(0);
   });
 
-  test("user can add a random product to cart and proceed to checkout", async ({
-    page,
-  }) => {
+  test("user can add a random product to cart and proceed to checkout", async ({ page }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 
@@ -144,9 +134,7 @@ test.describe("Cart as logged user", () => {
     await expect(cartPage.placeOrderButton()).toBeVisible();
   });
 
-  test("user can complete checkout and place order @smoke", async ({
-    page,
-  }) => {
+  test("user can complete checkout and place order @smoke", async ({ page }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 
@@ -186,14 +174,10 @@ test.describe("Cart as logged user", () => {
     await cartPage.expiryYearInput().fill(cartStaticData.payment.expiryYear);
     await cartPage.payAndConfirmOrderButton().click();
 
-    await expect(cartPage.orderPlacedHeader()).toContainText(
-      cartMessages.orderPlaced,
-    );
+    await expect(cartPage.orderPlacedHeader()).toContainText(cartMessages.orderPlaced);
   });
 
-  test("user cannot place order with empty payment fields", async ({
-    page,
-  }) => {
+  test("user cannot place order with empty payment fields", async ({ page }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 
@@ -225,9 +209,7 @@ test.describe("Cart as logged user", () => {
     await expect(cartPage.placeOrderButton()).toHaveCount(0);
   });
 
-  test("user cannot place order from direct payment URL with empty cart", async ({
-    page,
-  }) => {
+  test("user cannot place order from direct payment URL with empty cart", async ({ page }) => {
     const cartPage = new CartPage(page);
 
     await page.goto("/payment");
