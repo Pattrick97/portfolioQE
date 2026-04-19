@@ -6,6 +6,11 @@ import { guestCartCategoryFilter, cartStaticData, cartMessages } from "../data/c
 import { recoverFromVignette } from "../helpers/vignette.helper";
 import { createAccount, deleteAccount, loginAs } from "../helpers/auth.helper";
 import { clearCart } from "../helpers/cart.helper";
+import {
+  assertOrderNotPlacedOnPayment,
+  goToPaymentFromCheckout,
+  prepareCheckoutWithSingleProduct,
+} from "../helpers/cart-flow.helper";
 
 test.describe("Cart as guest", () => {
   test.describe.configure({ retries: 2 });
@@ -178,25 +183,14 @@ test.describe("Cart as logged user", () => {
   });
 
   test("user cannot place order with empty payment fields", async ({ page }) => {
-    const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
+    const productsPage = new ProductsPage(page);
 
-    await productsPage.navigate();
-    await productsPage.addProductToCartByIndex(0);
-    await expect(productsPage.continueShoppingButton()).toBeVisible();
-    await productsPage.closeAddToCartModal();
-
-    await cartPage.navigate();
-    await cartPage.proceedToCheckout();
-    await expect(page).toHaveURL(/.*checkout.*/);
-
-    await cartPage.placeOrderButton().click();
-    await expect(page).toHaveURL(/.*payment.*/);
+    await prepareCheckoutWithSingleProduct(page, productsPage, cartPage);
+    await goToPaymentFromCheckout(page, cartPage);
 
     await cartPage.payAndConfirmOrderButton().click();
-
-    await expect(page).toHaveURL(/.*payment.*/);
-    await expect(cartPage.orderPlacedHeader()).toHaveCount(0);
+    await assertOrderNotPlacedOnPayment(page, cartPage);
   });
 
   test("user cannot proceed to checkout with empty cart", async ({ page }) => {
@@ -222,25 +216,14 @@ test.describe("Cart as logged user", () => {
   });
 
   test("user cannot place order with only card number filled", async ({ page }) => {
-    const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
+    const productsPage = new ProductsPage(page);
 
-    await productsPage.navigate();
-    await productsPage.addProductToCartByIndex(0);
-    await expect(productsPage.continueShoppingButton()).toBeVisible();
-    await productsPage.closeAddToCartModal();
-
-    await cartPage.navigate();
-    await cartPage.proceedToCheckout();
-    await expect(page).toHaveURL(/.*checkout.*/);
-
-    await cartPage.placeOrderButton().click();
-    await expect(page).toHaveURL(/.*payment.*/);
+    await prepareCheckoutWithSingleProduct(page, productsPage, cartPage);
+    await goToPaymentFromCheckout(page, cartPage);
 
     await cartPage.cardNumberInput().fill(cartStaticData.payment.cardNumber);
     await cartPage.payAndConfirmOrderButton().click();
-
-    await expect(page).toHaveURL(/.*payment.*/);
-    await expect(cartPage.orderPlacedHeader()).toHaveCount(0);
+    await assertOrderNotPlacedOnPayment(page, cartPage);
   });
 });
