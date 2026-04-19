@@ -52,6 +52,7 @@ models/                # TypeScript interfaces for test data shapes
 pages/                 # Page Object Model classes (atomic selectors + actions)
 tests/                 # Playwright specs
 tests/api/             # API contract specs (catalog, auth, search/user details)
+perf/k6/               # k6 API performance scenarios (baseline thresholds)
 docs/                  # Local project notes (not tracked in git)
 .github/workflows/     # CI pipelines (api smoke + smoke + regression)
 .github/               # PR checklist template
@@ -177,6 +178,24 @@ Run full API suite:
 npm run test:api
 ```
 
+Run k6 API performance baseline:
+
+```bash
+npm run perf:api:k6
+```
+
+Run short k6 smoke profile:
+
+```bash
+npm run perf:api:k6:smoke
+```
+
+Optional overrides:
+
+```bash
+BASE_URL=https://automationexercise.com/api VUS=12 DURATION=60s npm run perf:api:k6
+```
+
 Run single spec:
 
 ```bash
@@ -246,6 +265,14 @@ Trace and video artifacts are uploaded for failing browser jobs (14-day retentio
 A Job Summary table appears on every run for manual trend monitoring.
 
 PR checklist: `.github/PULL_REQUEST_TEMPLATE.md`
+
+## Performance (k6)
+
+Performance checks are implemented with k6 in `perf/k6/api-baseline.js` as a lightweight API baseline.
+
+- Scenario covers `productsList`, `searchProduct`, and `verifyLogin`.
+- Gate conditions use thresholds (`http_req_failed` and per-endpoint p95 durations).
+- This is a trend/budget guardrail for API responsiveness, not a full-scale load test.
 
 ## Notes and Trade-offs
 

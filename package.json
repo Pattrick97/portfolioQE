@@ -9,6 +9,8 @@
     "test:regression": "npx playwright test",
     "test:api": "npx playwright test --project=api",
     "test:api:smoke": "npx playwright test --project=api --grep @smoke",
+    "perf:api:k6": "k6 run perf/k6/api-baseline.js",
+    "perf:api:k6:smoke": "k6 run --vus 3 --duration 15s perf/k6/api-baseline.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
