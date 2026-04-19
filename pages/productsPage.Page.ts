@@ -54,4 +54,23 @@ export class ProductsPage {
   viewCartLink(): Locator {
     return this.page.locator('a[href="/view_cart"]').first();
   }
+
+  async selectCategory(mainCategory: string, subCategory: string) {
+    await this.page.locator(`a[href='#${mainCategory}']`).first().click();
+    await this.page
+      .locator(".panel-body a", { hasText: subCategory })
+      .first()
+      .click();
+  }
+
+  async selectBrand(brand: string) {
+    await this.page
+      .locator(".brands-name a", { hasText: brand })
+      .first()
+      .click();
+  }
+
+  productsHeader(): Locator {
+    return this.page.locator(".features_items .title.text-center").first();
+  }
 }

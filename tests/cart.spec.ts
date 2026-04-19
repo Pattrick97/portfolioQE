@@ -3,6 +3,7 @@ import { ProductsPage } from "../pages/productsPage.Page";
 import { CartPage } from "../pages/cartPage.Page";
 import { SignupPage } from "../pages/signupPage.Page";
 import { generateSignupData, SignupData } from "../data/signUp.data";
+import { guestCartCategoryFilter } from "../data/productFilters.data";
 
 async function clearCart(page: Page) {
   const cartPage = new CartPage(page);
@@ -42,6 +43,48 @@ test.describe("Cart as guest", () => {
     } else {
       await expect(page).toHaveURL(/.*login.*/);
     }
+  });
+
+  test("guest user can filter by category and brand and add products to cart", async ({
+    page,
+  }) => {
+    const productsPage = new ProductsPage(page);
+    const cartPage = new CartPage(page);
+
+    await productsPage.navigate();
+    await expect(page).toHaveURL(/.*products.*/);
+
+    await productsPage.selectCategory(
+      guestCartCategoryFilter.mainCategory,
+      guestCartCategoryFilter.subCategory,
+    );
+    await expect(page).toHaveURL(/.*category_products.*/);
+    await expect(productsPage.productsHeader()).toContainText(
+      new RegExp(
+        `${guestCartCategoryFilter.mainCategory}|${guestCartCategoryFilter.subCategory}`,
+        "i",
+      ),
+    );
+    await expect(productsPage.productCards().first()).toBeVisible();
+
+    await productsPage.addProductToCartByIndex(0);
+    await expect(productsPage.continueShoppingButton()).toBeVisible();
+    await productsPage.closeAddToCartModal();
+
+    await productsPage.selectBrand(guestCartCategoryFilter.brand);
+    await expect(page).toHaveURL(/.*brand_products.*/);
+    await expect(productsPage.productsHeader()).toContainText(/Brand/i);
+    await expect(productsPage.productsHeader()).toContainText(
+      new RegExp(guestCartCategoryFilter.brand, "i"),
+    );
+    await expect(productsPage.productCards().first()).toBeVisible();
+
+    await productsPage.addProductToCartByIndex(0);
+    await expect(productsPage.continueShoppingButton()).toBeVisible();
+    await productsPage.closeAddToCartModal();
+
+    await cartPage.navigate();
+    await expect(cartPage.cartRows().first()).toBeVisible();
   });
 });
 
