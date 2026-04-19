@@ -4,9 +4,7 @@ import { createAccount, deleteAccount } from "../helpers/auth.helper";
 
 export { expect };
 
-export const test = base.extend<{
-  registeredUser: SignupData;
-}>({
+export const test = base.extend<{}, { registeredUser: SignupData }>({
   registeredUser: [
     async ({ browser }, use) => {
       const accountData = generateSignupData();
