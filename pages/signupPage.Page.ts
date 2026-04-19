@@ -5,27 +5,22 @@ export class SignupPage {
   constructor(private page: Page) {}
 
   async navigate() {
-    await this.page.addLocatorHandler(
-      this.page.locator(".fc-consent-root"),
-      async () => {
-        const consentButton = this.page.getByRole("button", {
-          name: /consent|agree|accept|zgoda|akcept/i,
-        });
-        if (await consentButton.first().isVisible()) {
-          await consentButton.first().click();
-        }
-      },
-    );
+    await this.page.addLocatorHandler(this.page.locator(".fc-consent-root"), async () => {
+      const consentButton = this.page.getByRole("button", {
+        name: /consent|agree|accept|zgoda|akcept/i,
+      });
+      if (await consentButton.first().isVisible()) {
+        await consentButton.first().click();
+      }
+    });
 
     await this.page.goto("/login");
   }
 
   async startSignup(data: SignupData) {
-    await this.page
-      .locator('input[data-qa="signup-name"]')
-      .fill(data.firstName);
-    await this.page.locator('input[data-qa="signup-email"]').fill(data.email);
-    await this.page.locator('button[data-qa="signup-button"]').click();
+    await this.signupNameInput().fill(data.firstName);
+    await this.signupEmailInput().fill(data.email);
+    await this.signupButton().click();
   }
 
   async fillSignUpForm(data: SignupData) {
@@ -76,9 +71,7 @@ export class SignupPage {
   }
 
   accountCreatedHeader(): Locator {
-    return this.page.locator(
-      'h2[data-qa="account-created"], h2:has-text("Account Created!")',
-    );
+    return this.page.locator('h2[data-qa="account-created"], h2:has-text("Account Created!")');
   }
 
   continueButton(): Locator {
@@ -115,6 +108,26 @@ export class SignupPage {
     return this.page.locator("#password:invalid");
   }
 
+  signupNameInput(): Locator {
+    return this.page.locator('input[data-qa="signup-name"]');
+  }
+
+  signupEmailInput(): Locator {
+    return this.page.locator('input[data-qa="signup-email"]');
+  }
+
+  signupButton(): Locator {
+    return this.page.locator('button[data-qa="signup-button"]');
+  }
+
+  signupNameInvalidField(): Locator {
+    return this.page.locator('input[data-qa="signup-name"]:invalid');
+  }
+
+  signupEmailInvalidField(): Locator {
+    return this.page.locator('input[data-qa="signup-email"]:invalid');
+  }
+
   async login(email: string, password: string) {
     await this.page.goto("/login");
     await this.page.locator('input[data-qa="login-email"]').fill(email);
@@ -127,8 +140,6 @@ export class SignupPage {
   }
 
   accountDeletedHeader(): Locator {
-    return this.page.locator(
-      'h2[data-qa="account-deleted"], h2:has-text("Account Deleted!")',
-    );
+    return this.page.locator('h2[data-qa="account-deleted"], h2:has-text("Account Deleted!")');
   }
 }

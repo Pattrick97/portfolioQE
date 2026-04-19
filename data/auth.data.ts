@@ -44,3 +44,10 @@ export const authMessages = {
   accountDeleted: "Account Deleted!",
   invalidLogin: "Your email or password is incorrect!",
 } as const;
+
+// Static inputs for negative/boundary signup scenarios
+export const signupInvalidInputs = {
+  validEmail: "test@example.com",
+  validName: "Test User",
+  invalidEmailFormat: "notanemail",
+} as const;

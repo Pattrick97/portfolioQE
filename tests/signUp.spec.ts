@@ -1,5 +1,5 @@
 import { expect, test } from "../fixtures/test-fixtures";
-import { generateSignupData, authMessages } from "../data/auth.data";
+import { generateSignupData, authMessages, signupInvalidInputs } from "../data/auth.data";
 import { SignupPage } from "../pages/signupPage.Page";
 import { recoverFromVignette } from "../helpers/vignette.helper";
 
@@ -21,15 +21,11 @@ test.describe("Signup", () => {
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
     await expect(page).toHaveURL(/.*account_created.*/);
-    await expect(signupPage.accountCreatedHeader()).toContainText(
-      authMessages.accountCreated,
-    );
+    await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
     await signupPage.continueAfterAccountCreated();
     await signupPage.deleteAccount();
-    await expect(signupPage.accountDeletedHeader()).toContainText(
-      authMessages.accountDeleted,
-    );
+    await expect(signupPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
     await expect(page).toHaveURL(/.*delete_account.*/);
   });
 
@@ -43,9 +39,7 @@ test.describe("Signup", () => {
 
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
-    await expect(signupPage.accountCreatedHeader()).toContainText(
-      authMessages.accountCreated,
-    );
+    await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
     await signupPage.continueAfterAccountCreated();
     await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
@@ -57,9 +51,7 @@ test.describe("Signup", () => {
     await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
 
     await signupPage.deleteAccount();
-    await expect(signupPage.accountDeletedHeader()).toContainText(
-      authMessages.accountDeleted,
-    );
+    await expect(signupPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
   });
 
   test("user cannot sign up with existing email", async ({ page }) => {
@@ -79,9 +71,7 @@ test.describe("Signup", () => {
 
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
-    await expect(signupPage.accountCreatedHeader()).toContainText(
-      authMessages.accountCreated,
-    );
+    await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
     await signupPage.continueAfterAccountCreated();
     await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
@@ -97,6 +87,33 @@ test.describe("Signup", () => {
       fallbackPath: "/signup",
     });
     await expect(signupPage.emailAlreadyExistsMessage()).toBeVisible();
+  });
+
+  test("signup start is blocked when name is empty", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+
+    await signupPage.navigate();
+    await expect(signupPage.newUserSignupHeader()).toBeVisible();
+
+    await signupPage.signupEmailInput().fill(signupInvalidInputs.validEmail);
+    await signupPage.signupButton().click();
+
+    await expect(signupPage.accountInfoHeader()).toHaveCount(0);
+    await expect(signupPage.signupNameInvalidField()).toHaveCount(1);
+  });
+
+  test("signup start is blocked when email format is invalid", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+
+    await signupPage.navigate();
+    await expect(signupPage.newUserSignupHeader()).toBeVisible();
+
+    await signupPage.signupNameInput().fill(signupInvalidInputs.validName);
+    await signupPage.signupEmailInput().fill(signupInvalidInputs.invalidEmailFormat);
+    await signupPage.signupButton().click();
+
+    await expect(signupPage.accountInfoHeader()).toHaveCount(0);
+    await expect(signupPage.signupEmailInvalidField()).toHaveCount(1);
   });
 
   test("registration form blocks account creation when required fields are empty", async ({

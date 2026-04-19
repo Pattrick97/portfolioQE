@@ -41,6 +41,8 @@ playwright.config.ts   # Playwright configuration
 - signup with existing email
 - required fields validation check
 - register -> logout -> login flow
+- signup start blocked when name is empty
+- signup start blocked when invalid email format
 
 ### Login
 
@@ -103,7 +105,7 @@ Data files in `data/` are grouped by domain and split by type:
 
 | File                   | Type             | Contents                                                          |
 | ---------------------- | ---------------- | ----------------------------------------------------------------- |
-| `data/auth.data.ts`    | Dynamic + Static | `generateSignupData()`, `authMessages`                            |
+| `data/auth.data.ts`    | Dynamic + Static | `generateSignupData()`, `authMessages`, `signupInvalidInputs`     |
 | `data/cart.data.ts`    | Static           | `guestCartCategoryFilter`, `cartStaticData`, `cartMessages`       |
 | `data/contact.data.ts` | Dynamic + Static | `generateContactUsData()`, `contactStaticData`, `contactMessages` |
 
