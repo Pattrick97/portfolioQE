@@ -1,23 +1,12 @@
-import { Page } from "@playwright/test";
 import { expect, test } from "../fixtures/test-fixtures";
 import { ProductsPage } from "../pages/productsPage.Page";
 import { CartPage } from "../pages/cartPage.Page";
-import { SignupPage } from "../pages/signupPage.Page";
 import { generateSignupData, SignupData } from "../data/signUp.data";
 import { guestCartCategoryFilter } from "../data/productFilters.data";
 import { testCheckoutData, testMessages } from "../data/testConstants.data";
 import { recoverFromVignette } from "../helpers/vignette.helper";
-
-async function clearCart(page: Page) {
-  const cartPage = new CartPage(page);
-  await cartPage.navigate();
-
-  while ((await cartPage.cartDeleteButtons().count()) > 0) {
-    const currentCount = await cartPage.cartDeleteButtons().count();
-    await cartPage.removeFirstItemFromCart();
-    await expect(cartPage.cartDeleteButtons()).toHaveCount(currentCount - 1);
-  }
-}
+import { createAccount, deleteAccount, loginAs } from "../helpers/auth.helper";
+import { clearCart } from "../helpers/cart.helper";
 
 test.describe("Cart as guest", () => {
   test.describe.configure({ retries: 2 });
@@ -100,39 +89,15 @@ test.describe("Cart as logged user", () => {
 
   test.beforeAll(async ({ browser }) => {
     accountData = generateSignupData();
-    const page = await browser.newPage();
-    const signupPage = new SignupPage(page);
-
-    await signupPage.navigate();
-    await signupPage.startSignup(accountData);
-    await expect(signupPage.accountInfoHeader()).toBeVisible();
-    await signupPage.fillSignUpForm(accountData);
-    await signupPage.createAccount();
-    await expect(signupPage.accountCreatedHeader()).toContainText(
-      testMessages.accountCreated,
-    );
-    await page.close();
+    await createAccount(browser, accountData);
   });
 
   test.afterAll(async ({ browser }) => {
-    const page = await browser.newPage();
-    const signupPage = new SignupPage(page);
-
-    await signupPage.navigate();
-    await signupPage.login(accountData.email, accountData.password);
-    await page.goto("/delete_account");
-    await expect(signupPage.accountDeletedHeader()).toContainText(
-      testMessages.accountDeleted,
-    );
-    await page.close();
+    await deleteAccount(browser, accountData);
   });
 
   test.beforeEach(async ({ page }) => {
-    const signupPage = new SignupPage(page);
-    await signupPage.navigate();
-    await signupPage.login(accountData.email, accountData.password);
-    await expect(signupPage.loggedInAs(accountData.firstName)).toBeVisible();
-
+    await loginAs(page, accountData);
     await clearCart(page);
   });
 

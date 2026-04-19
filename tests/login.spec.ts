@@ -2,37 +2,18 @@ import { expect, test } from "../fixtures/test-fixtures";
 import { generateSignupData, SignupData } from "../data/signUp.data";
 import { SignupPage } from "../pages/signupPage.Page";
 import { testMessages } from "../data/testConstants.data";
+import { createAccount, deleteAccount } from "../helpers/auth.helper";
 
 test.describe("Login", () => {
   let accountData: SignupData;
 
   test.beforeAll(async ({ browser }) => {
     accountData = generateSignupData();
-    const page = await browser.newPage();
-    const signupPage = new SignupPage(page);
-
-    await signupPage.navigate();
-    await signupPage.startSignup(accountData);
-    await expect(signupPage.accountInfoHeader()).toBeVisible();
-    await signupPage.fillSignUpForm(accountData);
-    await signupPage.createAccount();
-    await expect(signupPage.accountCreatedHeader()).toContainText(
-      testMessages.accountCreated,
-    );
-    await page.close();
+    await createAccount(browser, accountData);
   });
 
   test.afterAll(async ({ browser }) => {
-    const page = await browser.newPage();
-    const signupPage = new SignupPage(page);
-
-    await signupPage.navigate();
-    await signupPage.login(accountData.email, accountData.password);
-    await signupPage.deleteAccount();
-    await expect(signupPage.accountDeletedHeader()).toContainText(
-      testMessages.accountDeleted,
-    );
-    await page.close();
+    await deleteAccount(browser, accountData);
   });
 
   test("user can log in with valid credentials", async ({ page }) => {
