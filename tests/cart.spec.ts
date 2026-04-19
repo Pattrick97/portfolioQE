@@ -144,7 +144,9 @@ test.describe("Cart as logged user", () => {
     await expect(cartPage.placeOrderButton()).toBeVisible();
   });
 
-  test("user can complete checkout and place order", async ({ page }) => {
+  test("user can complete checkout and place order @smoke", async ({
+    page,
+  }) => {
     const productsPage = new ProductsPage(page);
     const cartPage = new CartPage(page);
 

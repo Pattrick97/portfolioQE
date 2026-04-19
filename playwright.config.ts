@@ -21,8 +21,10 @@ export default defineConfig({
   retries: 0,
   /* Use 4 workers locally; run 2 workers on CI pipeline. */
   workers: process.env.CI ? 2 : 4,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: "html",
+  /* Reporter: GitHub annotations in CI, HTML always. */
+  reporter: process.env.CI
+    ? [["github"], ["html", { open: "never" }]]
+    : [["html", { open: "on-failure" }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
@@ -30,6 +32,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+
+    /* Capture video only for failed tests — enables post-mortem debugging. */
+    video: "retain-on-failure",
   },
 
   /* Configure projects for major browsers */

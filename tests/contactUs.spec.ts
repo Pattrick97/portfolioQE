@@ -10,7 +10,7 @@ import { recoverFromVignette } from "../helpers/vignette.helper";
 test.describe("Contact Us", () => {
   test.describe.configure({ retries: 2 });
 
-  test("guest user can submit contact us form", async ({ page }) => {
+  test("guest user can submit contact us form @smoke", async ({ page }) => {
     const contactUsPage = new ContactUsPage(page);
     const contactData = generateContactUsData();
 

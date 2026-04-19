@@ -3,7 +3,7 @@ import { generateSignupData, authMessages } from "../data/auth.data";
 import { SignupPage } from "../pages/signupPage.Page";
 
 test.describe("Signup", () => {
-  test("user can sign up", async ({ page }) => {
+  test("user can sign up @smoke", async ({ page }) => {
     const data = generateSignupData();
     const signupPage = new SignupPage(page);
 

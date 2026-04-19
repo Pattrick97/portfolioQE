@@ -15,7 +15,7 @@ test.describe("Login", () => {
     await deleteAccount(browser, accountData);
   });
 
-  test("user can log in with valid credentials", async ({ page }) => {
+  test("user can log in with valid credentials @smoke", async ({ page }) => {
     const signupPage = new SignupPage(page);
 
     await signupPage.navigate();

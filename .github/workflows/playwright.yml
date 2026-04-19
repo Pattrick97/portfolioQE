@@ -3,18 +3,76 @@ name: Playwright Tests
 on:
   push:
     branches: [main, master]
+  schedule:
+    # Full regression every day at 06:00 UTC
+    - cron: "0 6 * * *"
   workflow_dispatch:
+    inputs:
+      suite:
+        description: "Which suite to run"
+        required: false
+        default: "regression"
+        type: choice
+        options:
+          - smoke
+          - regression
 
 concurrency:
   group: playwright-${{ github.ref }}
   cancel-in-progress: true
 
+# ─── Smoke ────────────────────────────────────────────────────────────────────
+# Runs on every push. Chromium only, @smoke-tagged tests.
+# Fast feedback — should finish in < 5 minutes.
 jobs:
-  test:
+  smoke:
+    name: Smoke (chromium)
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers (chromium only)
+        run: npx playwright install chromium --with-deps
+
+      - name: Run smoke tests
+        run: npm run test:smoke
+
+      - name: Upload smoke report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: smoke-report
+          path: playwright-report/
+          retention-days: 7
+
+  # ─── Full Regression ──────────────────────────────────────────────────────────
+  # Runs on schedule and manual dispatch. One job per browser for parallel execution
+  # and isolated artifacts. Trace + video retained on failure for debugging.
+  regression:
+    name: Regression (${{ matrix.browser }})
+    needs: smoke
+    if: >
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression')
     timeout-minutes: 60
     runs-on: ubuntu-latest
     env:
       CI: true
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
 
     steps:
       - uses: actions/checkout@v4
@@ -27,15 +85,53 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+      - name: Install Playwright Browsers (${{ matrix.browser }})
+        run: npx playwright install ${{ matrix.browser }} --with-deps
 
-      - name: Run Playwright tests
-        run: npx playwright test
+      - name: Run full regression (${{ matrix.browser }})
+        run: npm run test:regression -- --project=${{ matrix.browser }}
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload regression report (${{ matrix.browser }})
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: regression-report-${{ matrix.browser }}
           path: playwright-report/
           retention-days: 30
+
+      - name: Upload test results with trace and video (${{ matrix.browser }})
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: test-results/
+          retention-days: 14
+
+  # ─── Trend summary ────────────────────────────────────────────────────────────
+  # Writes a GitHub Job Summary with pass rate, failed count, and suite duration.
+  # Visible on the Actions run page — enables manual trend monitoring.
+  summary:
+    name: Suite summary
+    needs: [smoke, regression]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-report*"
+          merge-multiple: true
+          path: all-reports/
+
+      - name: Write job summary
+        run: |
+          echo "## Playwright Test Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Smoke (chromium) | ${{ needs.smoke.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Regression (chromium) | ${{ needs.regression.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Regression (firefox) | ${{ needs.regression.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Regression (webkit) | ${{ needs.regression.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Trace and video artifacts are uploaded for any failed browser job." >> $GITHUB_STEP_SUMMARY
