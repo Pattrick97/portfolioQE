@@ -30,6 +30,18 @@ test.describe("API auth", () => {
     expect(body.message).toContain("missing in POST request");
   });
 
+  test("verifyLogin returns 400 when both email and password are missing", async ({ api }) => {
+    const response = await api.post("verifyLogin", {
+      form: {},
+    });
+
+    expect(response.ok()).toBeTruthy();
+
+    const body = await response.json();
+    expect(body.responseCode).toBe(400);
+    expect(body.message).toContain("missing in POST request");
+  });
+
   test("verifyLogin rejects GET method with 405", async ({ api }) => {
     const response = await api.get("verifyLogin");
     expect(response.ok()).toBeTruthy();

@@ -48,6 +48,8 @@ playwright.config.ts   # Playwright configuration
 - logout session check
 - invalid password
 - empty credentials
+- empty password
+- empty email
 - nonexistent email
 
 ### Cart and Checkout
@@ -58,6 +60,9 @@ playwright.config.ts   # Playwright configuration
 - proceed to checkout
 - complete checkout and place order (payment)
 - empty payment fields blocked
+- empty cart blocks checkout actions
+- direct payment URL with empty cart does not place order
+- partial payment data (card number only) does not place order
 
 ### Contact Us
 
@@ -75,18 +80,22 @@ playwright.config.ts   # Playwright configuration
 - products list endpoint returns 200 with non-empty payload
 - brands list endpoint returns 200 with non-empty payload
 - unsupported method on products endpoint returns 405
+- unsupported PUT method on products endpoint returns 405
 
 ### API auth
 
 - verifyLogin returns 404 for unknown user
 - verifyLogin returns 400 when required params are missing
+- verifyLogin returns 400 when both credentials are missing
 - verifyLogin rejects GET with 405
 
 ### API search and user details
 
 - searchProduct returns matching catalog payload for query
 - searchProduct rejects GET with 405
+- searchProduct returns 400 when search parameter is missing
 - getUserDetailByEmail returns 404 for nonexistent account
+- getUserDetailByEmail returns 400 when email parameter is missing
 
 ## Data-Driven Approach
 

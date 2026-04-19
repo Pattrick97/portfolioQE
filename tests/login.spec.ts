@@ -57,6 +57,26 @@ test.describe("Login", () => {
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
+  test("user cannot log in with empty password", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+
+    await signupPage.navigate();
+    await signupPage.login(accountData.email, "");
+
+    await expect(page).toHaveURL(/.*login.*/);
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+  });
+
+  test("user cannot log in with empty email", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+
+    await signupPage.navigate();
+    await signupPage.login("", accountData.password);
+
+    await expect(page).toHaveURL(/.*login.*/);
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+  });
+
   test("user cannot log in with nonexistent email", async ({ page }) => {
     const signupPage = new SignupPage(page);
 
@@ -67,9 +87,7 @@ test.describe("Login", () => {
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
-  test("unauthenticated user does not see account management links", async ({
-    page,
-  }) => {
+  test("unauthenticated user does not see account management links", async ({ page }) => {
     const signupPage = new SignupPage(page);
     await page.goto("/");
 

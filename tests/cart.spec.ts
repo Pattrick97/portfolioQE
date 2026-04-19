@@ -214,4 +214,51 @@ test.describe("Cart as logged user", () => {
     await expect(page).toHaveURL(/.*payment.*/);
     await expect(cartPage.orderPlacedHeader()).toHaveCount(0);
   });
+
+  test("user cannot proceed to checkout with empty cart", async ({ page }) => {
+    const cartPage = new CartPage(page);
+
+    await cartPage.navigate();
+    await expect(cartPage.cartRows()).toHaveCount(0);
+
+    await expect(cartPage.checkoutButton()).toHaveCount(0);
+    await expect(cartPage.placeOrderButton()).toHaveCount(0);
+  });
+
+  test("user cannot place order from direct payment URL with empty cart", async ({
+    page,
+  }) => {
+    const cartPage = new CartPage(page);
+
+    await page.goto("/payment");
+    await expect(page).toHaveURL(/.*payment.*/);
+
+    await cartPage.payAndConfirmOrderButton().click();
+
+    await expect(page).toHaveURL(/.*payment.*/);
+    await expect(cartPage.orderPlacedHeader()).toHaveCount(0);
+  });
+
+  test("user cannot place order with only card number filled", async ({ page }) => {
+    const productsPage = new ProductsPage(page);
+    const cartPage = new CartPage(page);
+
+    await productsPage.navigate();
+    await productsPage.addProductToCartByIndex(0);
+    await expect(productsPage.continueShoppingButton()).toBeVisible();
+    await productsPage.closeAddToCartModal();
+
+    await cartPage.navigate();
+    await cartPage.proceedToCheckout();
+    await expect(page).toHaveURL(/.*checkout.*/);
+
+    await cartPage.placeOrderButton().click();
+    await expect(page).toHaveURL(/.*payment.*/);
+
+    await cartPage.cardNumberInput().fill(cartStaticData.payment.cardNumber);
+    await cartPage.payAndConfirmOrderButton().click();
+
+    await expect(page).toHaveURL(/.*payment.*/);
+    await expect(cartPage.orderPlacedHeader()).toHaveCount(0);
+  });
 });

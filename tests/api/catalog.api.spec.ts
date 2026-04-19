@@ -29,4 +29,13 @@ test.describe("API catalog", () => {
     expect(body.responseCode).toBe(405);
     expect(body.message).toContain("not supported");
   });
+
+  test("products list rejects unsupported PUT method", async ({ api }) => {
+    const response = await api.put("productsList");
+    expect(response.ok()).toBeTruthy();
+
+    const body = await response.json();
+    expect(body.responseCode).toBe(405);
+    expect(body.message).toContain("not supported");
+  });
 });
