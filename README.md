@@ -33,14 +33,6 @@ What they validate:
 - input validation behavior for missing/invalid parameters (`400` paths)
 - expected business outcomes for known invalid identities (`404` paths)
 
-What they are **not** (currently):
-
-- provider-published schema/version contract testing (e.g., Pact/OpenAPI schema conformance gates)
-- performance/load testing
-- security testing (authz, injection, fuzzing)
-
-So in practice: this suite sits between classic API functional tests and lightweight contract verification from the consumer perspective.
-
 ## Tech Stack
 
 - Playwright (`@playwright/test`)
