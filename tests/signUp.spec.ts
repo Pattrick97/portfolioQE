@@ -27,7 +27,7 @@ test.describe("Signup", () => {
     await expect(page).toHaveURL(/.*account_created.*/);
     await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
-    await signupPage.continueAfterAccountCreated();
+    await signupPage.login(data.email, data.password);
     await signupPage.deleteAccount();
     await expect(signupPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
     await expect(page).toHaveURL(/.*delete_account.*/);
