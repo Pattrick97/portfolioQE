@@ -18,7 +18,7 @@ test.describe("Login", () => {
     await signupPage.login(registeredUser.email, registeredUser.password);
     await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
 
-    await signupPage.logoutLink().click();
+    await Promise.all([page.waitForURL(/.*login.*/), signupPage.logoutLink().click()]);
     await expect(page).toHaveURL(/.*login.*/);
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);
     await expect(signupPage.loginLink()).toBeVisible();
