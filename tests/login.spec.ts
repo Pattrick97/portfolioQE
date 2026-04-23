@@ -74,6 +74,75 @@ test.describe("Login", () => {
     await expect(signupPage.loggedInAsAny()).toHaveCount(0);
   });
 
+  test("session persists across page navigation", async ({ page, registeredUser }) => {
+    const signupPage = new SignupPage(page);
+    await signupPage.navigate();
+    await signupPage.login(registeredUser.email, registeredUser.password);
+    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+
+    await page.goto("/products");
+    await page.goto("/");
+
+    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+  });
+
+  test("authenticated user navigating to /login does not get logged out", async ({
+    page,
+    registeredUser,
+  }) => {
+    const signupPage = new SignupPage(page);
+    await signupPage.navigate();
+    await signupPage.login(registeredUser.email, registeredUser.password);
+    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+
+    await signupPage.navigate();
+
+    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    await expect(signupPage.logoutLink()).toBeVisible();
+  });
+
+  test("login rejects SQL injection payload in email field", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+    await signupPage.navigate();
+    await signupPage.loginEmailInput().fill("' OR '1'='1'--");
+    await signupPage.loginPasswordInput().fill("anything");
+    await signupPage.loginButton().click();
+
+    await expect(signupPage.loginEmailInvalidField()).toBeVisible();
+    await expect(page).toHaveURL(/.*login.*/);
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+  });
+
+  test("logout invalidates server session — back navigation does not restore it", async ({
+    page,
+    registeredUser,
+  }) => {
+    const signupPage = new SignupPage(page);
+    await signupPage.navigate();
+    await signupPage.login(registeredUser.email, registeredUser.password);
+    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+
+    await Promise.all([page.waitForURL(/.*login.*/), signupPage.logoutLink().click()]);
+    await page.goBack();
+    // Reload forces a fresh server request, bypassing bfcache — confirms server session is truly gone
+    await page.reload();
+
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(signupPage.logoutLink()).toHaveCount(0);
+  });
+
+  test("login email field enforces valid email format", async ({ page }) => {
+    const signupPage = new SignupPage(page);
+    await signupPage.navigate();
+    await signupPage.loginEmailInput().fill("not-an-email");
+    await signupPage.loginPasswordInput().fill("somepassword");
+    await signupPage.loginButton().click();
+
+    await expect(signupPage.loginEmailInvalidField()).toBeVisible();
+    await expect(page).toHaveURL(/.*login.*/);
+    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+  });
+
   test("unauthenticated user does not see account management links", async ({ page }) => {
     const signupPage = new SignupPage(page);
     await page.goto("/");

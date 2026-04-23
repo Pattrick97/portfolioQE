@@ -20,6 +20,10 @@ test.describe("Signup", () => {
 
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
+    await recoverFromVignette(page, {
+      expectedUrlPart: "account_created",
+      fallbackPath: "/account_created",
+    });
     await expect(page).toHaveURL(/.*account_created.*/);
     await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
@@ -39,6 +43,10 @@ test.describe("Signup", () => {
 
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
+    await recoverFromVignette(page, {
+      expectedUrlPart: "account_created",
+      fallbackPath: "/account_created",
+    });
     await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
     await signupPage.continueAfterAccountCreated();
@@ -68,6 +76,10 @@ test.describe("Signup", () => {
 
     await signupPage.fillSignUpForm(data);
     await signupPage.createAccount();
+    await recoverFromVignette(page, {
+      expectedUrlPart: "account_created",
+      fallbackPath: "/account_created",
+    });
     await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
     await signupPage.continueAfterAccountCreated();

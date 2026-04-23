@@ -64,22 +64,28 @@ playwright.config.ts   # Playwright configuration
 
 ### Signup
 
-- successful signup
-- signup with existing email
-- required fields validation check
-- register -> logout -> login flow
+- successful signup (+ account cleanup)
+- register → logout → login again
+- signup with existing email blocked
 - signup start blocked when name is empty
 - signup start blocked when invalid email format
+- registration form blocks account creation when required fields are empty
 
 ### Login
 
 - successful login
-- logout session check
+- logout ends authenticated session (URL + nav state verified)
 - invalid password
 - empty credentials
 - empty password
 - empty email
 - nonexistent email
+- session persists across page navigation
+- authenticated user navigating to /login does not get logged out
+- SQL injection payload rejected by email field constraint validation
+- logout invalidates server session — back navigation does not restore it (bfcache guard)
+- malformed email format blocked by HTML5 constraint validation
+- unauthenticated user does not see account management links
 
 ### Cart and Checkout
 
@@ -102,7 +108,7 @@ playwright.config.ts   # Playwright configuration
 
 ### Auth guards
 
-- unauthenticated user does not see account management links
+- unauthenticated user does not see account management links (covered in Login section above)
 
 ### API catalog
 
@@ -213,14 +219,14 @@ Example: use worker-scoped `registeredUser` fixture in a new spec:
 
 ```ts
 import { expect, test } from "../fixtures/auth-fixtures";
+import { SignupPage } from "../pages/signupPage.Page";
 
 test("user profile is visible after login", async ({ page, registeredUser }) => {
-  await page.goto("/login");
-  await page.locator('input[data-qa="login-email"]').fill(registeredUser.email);
-  await page.locator('input[data-qa="login-password"]').fill(registeredUser.password);
-  await page.locator('button[data-qa="login-button"]').click();
+  const signupPage = new SignupPage(page);
+  await signupPage.navigate();
+  await signupPage.login(registeredUser.email, registeredUser.password);
 
-  await expect(page.getByText(`Logged in as ${registeredUser.firstName}`)).toBeVisible();
+  await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
 });
 ```
 

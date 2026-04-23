@@ -15,6 +15,10 @@ export async function createAccount(browser: Browser, data: SignupData): Promise
   await expect(signupPage.accountInfoHeader()).toBeVisible();
   await signupPage.fillSignUpForm(data);
   await signupPage.createAccount();
+  await recoverFromVignette(page, {
+    expectedUrlPart: "account_created",
+    fallbackPath: "/account_created",
+  });
   await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
   await context.close();
 }

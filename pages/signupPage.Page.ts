@@ -1,5 +1,6 @@
 import { Locator, Page } from "@playwright/test";
 import type { SignupData } from "../data/auth.data";
+import { recoverFromVignette } from "../helpers/vignette.helper";
 
 export class SignupPage {
   constructor(private page: Page) {}
@@ -7,7 +8,7 @@ export class SignupPage {
   async navigate() {
     await this.page.addLocatorHandler(this.page.locator(".fc-consent-root"), async () => {
       const consentButton = this.page.getByRole("button", {
-        name: /consent|agree|accept|zgoda|akcept/i,
+        name: /consent|agree|accept|zgoda|zgadzam|akcept/i,
       });
       if (await consentButton.first().isVisible()) {
         await consentButton.first().click();
@@ -56,6 +57,10 @@ export class SignupPage {
 
   async continueAfterAccountCreated() {
     await this.page.locator('a[data-qa="continue-button"]').click();
+    await recoverFromVignette(this.page, {
+      expectedUrlPart: "automationexercise.com/",
+      fallbackPath: "/",
+    });
   }
 
   newUserSignupHeader(): Locator {
@@ -122,6 +127,22 @@ export class SignupPage {
 
   signupEmailInvalidField(): Locator {
     return this.page.locator('input[data-qa="signup-email"]:invalid');
+  }
+
+  loginEmailInput(): Locator {
+    return this.page.locator('input[data-qa="login-email"]');
+  }
+
+  loginPasswordInput(): Locator {
+    return this.page.locator('input[data-qa="login-password"]');
+  }
+
+  loginButton(): Locator {
+    return this.page.locator('button[data-qa="login-button"]');
+  }
+
+  loginEmailInvalidField(): Locator {
+    return this.page.locator('input[data-qa="login-email"]:invalid');
   }
 
   async login(email: string, password: string) {
