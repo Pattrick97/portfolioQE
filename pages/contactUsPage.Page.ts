@@ -5,15 +5,6 @@ export class ContactUsPage {
   constructor(private page: Page) {}
 
   async navigate() {
-    await this.page.addLocatorHandler(this.page.locator(".fc-consent-root"), async () => {
-      const consentButton = this.page.getByRole("button", {
-        name: /consent|agree|accept|zgoda|zgadzam|akcept/i,
-      });
-      if (await consentButton.first().isVisible()) {
-        await consentButton.first().click();
-      }
-    });
-
     await this.page.goto("/contact_us");
   }
 

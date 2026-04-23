@@ -6,7 +6,7 @@ export const test = base.extend({
   page: async ({ page }, use) => {
     await page.addLocatorHandler(page.locator(".fc-consent-root"), async () => {
       const consentButton = page.getByRole("button", {
-        name: /consent|agree|accept|zgoda|akcept/i,
+        name: /consent|agree|accept|zgoda|zgadzam|akcept/i,
       });
       if (await consentButton.first().isVisible()) {
         await consentButton.first().click();
