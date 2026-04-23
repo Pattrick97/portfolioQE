@@ -138,6 +138,7 @@ export class SignupPage {
 
   async login(email: string, password: string) {
     await this.page.goto("/login");
+    await recoverFromVignette(this.page, { expectedUrlPart: "login", fallbackPath: "/login" });
     await this.page.locator('input[data-qa="login-email"]').fill(email);
     await this.page.locator('input[data-qa="login-password"]').fill(password);
     await this.page.locator('button[data-qa="login-button"]').click();
