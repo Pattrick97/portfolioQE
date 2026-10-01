@@ -1,5 +1,6 @@
 import { expect, test } from "../../fixtures/api-fixtures";
-import { expectApiCode, getApiBody } from "../../helpers/api.helper";
+import { expectApiCode, expectProductContract, getApiBody } from "../../helpers/api.helper";
+import type { ApiMessageResponse, ProductSearchResponse } from "../../models/Api.Model.js";
 
 test.describe("API search and user details", () => {
   test("searchProduct returns matching catalog payload for query @smoke", async ({ api }) => {
@@ -9,15 +10,16 @@ test.describe("API search and user details", () => {
       },
     });
 
-    const body = await getApiBody<{ responseCode: number; products: unknown[] }>(response);
+    const body = await getApiBody<ProductSearchResponse>(response);
     expectApiCode(body, 200);
     expect(Array.isArray(body.products)).toBeTruthy();
     expect(body.products.length).toBeGreaterThan(0);
+    expectProductContract(body.products[0]);
   });
 
   test("searchProduct rejects GET with 405", async ({ api }) => {
     const response = await api.get("searchProduct");
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 405);
     expect(body.message).toContain("not supported");
   });
@@ -26,7 +28,7 @@ test.describe("API search and user details", () => {
     const response = await api.post("searchProduct", {
       form: {},
     });
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 400);
     expect(body.message).toContain("search_product parameter is missing");
   });
@@ -35,14 +37,14 @@ test.describe("API search and user details", () => {
     const response = await api.get(
       "getUserDetailByEmail?email=this_user_should_not_exist_12345@example.com",
     );
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 404);
     expect(body.message).toContain("Account not found");
   });
 
   test("getUserDetailByEmail returns 400 when email parameter is missing", async ({ api }) => {
     const response = await api.get("getUserDetailByEmail");
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 400);
     expect(body.message).toContain("email parameter is missing");
   });

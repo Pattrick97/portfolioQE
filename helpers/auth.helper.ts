@@ -1,5 +1,5 @@
 import { Browser, Page, expect } from "@playwright/test";
-import { SignupPage } from "../pages/signupPage.Page";
+import { AuthPage } from "../pages/authPage.Page";
 import { SignupData, authMessages } from "../data/auth.data";
 import { installConsentHandler } from "./consent.helper";
 import { recoverFromVignette } from "./vignette.helper";
@@ -10,18 +10,18 @@ export async function createAccount(browser: Browser, data: SignupData): Promise
   });
   const page = await context.newPage();
   await installConsentHandler(page);
-  const signupPage = new SignupPage(page);
+  const authPage = new AuthPage(page);
 
-  await signupPage.navigate();
-  await signupPage.startSignup(data);
-  await expect(signupPage.accountInfoHeader()).toBeVisible();
-  await signupPage.fillSignUpForm(data);
-  await signupPage.createAccount();
+  await authPage.navigate();
+  await authPage.startSignup(data);
+  await expect(authPage.accountInfoHeader()).toBeVisible();
+  await authPage.fillSignUpForm(data);
+  await authPage.createAccount();
   await recoverFromVignette(page, {
     expectedUrlPart: "account_created",
     fallbackPath: "/account_created",
   });
-  await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
+  await expect(authPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
   await context.close();
 }
 
@@ -31,22 +31,22 @@ export async function deleteAccount(browser: Browser, data: SignupData): Promise
   });
   const page = await context.newPage();
   await installConsentHandler(page);
-  const signupPage = new SignupPage(page);
+  const authPage = new AuthPage(page);
 
-  await signupPage.navigate();
-  await signupPage.login(data.email, data.password);
-  await signupPage.deleteAccount();
-  await expect(signupPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
+  await authPage.navigate();
+  await authPage.login(data.email, data.password);
+  await authPage.deleteAccount();
+  await expect(authPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
   await context.close();
 }
 
 export async function loginAs(page: Page, data: SignupData): Promise<void> {
-  const signupPage = new SignupPage(page);
-  await signupPage.navigate();
-  await signupPage.login(data.email, data.password);
+  const authPage = new AuthPage(page);
+  await authPage.navigate();
+  await authPage.login(data.email, data.password);
   await recoverFromVignette(page, {
     expectedUrlPart: "automationexercise.com/",
     fallbackPath: "/",
   });
-  await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
+  await expect(authPage.loggedInAs(data.firstName)).toBeVisible();
 }

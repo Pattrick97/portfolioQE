@@ -28,7 +28,7 @@ Current API tests are primarily **consumer-side contract checks** with negative 
 
 What they validate:
 
-- endpoint availability and basic response contract (`responseCode`, key payload fields, message semantics)
+- endpoint availability and response contract: HTTP status is checked separately from the API-level `responseCode`, along with key payload fields and message semantics
 - allowed/disallowed HTTP methods (e.g., `405` behavior)
 - input validation behavior for missing/invalid parameters (`400` paths)
 - expected business outcomes for known invalid identities (`404` paths)
@@ -45,16 +45,19 @@ What they validate:
 
 ## Project Structure
 
+For a quick guide to how tests, fixtures, Page Objects, helpers, data, and models fit together, see [docs/architecture.md](docs/architecture.md).
+
 ```text
 data/                  # Test data — dynamic generators (faker) and deterministic constants
 fixtures/              # Shared Playwright fixtures (consent handler + registered test user)
 helpers/               # Workflow helpers (auth, cart, checkout flow, API assertions, vignette recovery)
-models/                # TypeScript interfaces for test data shapes
+models/                # TypeScript interfaces for test data and API payloads
 pages/                 # Page Object Model classes (atomic selectors + actions)
 tests/                 # Playwright specs
 tests/api/             # API contract specs (catalog, auth, search/user details)
 perf/k6/               # k6 API performance scenarios (baseline thresholds)
-docs/                  # Local project notes (not tracked in git)
+docs/architecture.md   # Tracked guide to navigating and extending the project
+docs/project-improvement-notes.md # Local notes excluded from git
 .github/workflows/     # CI pipelines (api smoke + smoke + regression)
 .github/               # PR checklist template
 playwright.config.ts   # Playwright configuration

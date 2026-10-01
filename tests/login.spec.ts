@@ -1,154 +1,154 @@
 import { expect, test } from "../fixtures/auth-fixtures";
-import { SignupPage } from "../pages/signupPage.Page";
+import { AuthPage } from "../pages/authPage.Page";
 
 test.describe("Login", () => {
   test("user can log in with valid credentials @smoke", async ({ page, registeredUser }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
 
-    await signupPage.navigate();
-    await signupPage.login(registeredUser.email, registeredUser.password);
+    await authPage.navigate();
+    await authPage.login(registeredUser.email, registeredUser.password);
 
-    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    await expect(authPage.loggedInAs(registeredUser.firstName)).toBeVisible();
   });
 
   test("logout ends authenticated session", async ({ page, registeredUser }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
 
-    await signupPage.navigate();
-    await signupPage.login(registeredUser.email, registeredUser.password);
-    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    await authPage.navigate();
+    await authPage.login(registeredUser.email, registeredUser.password);
+    await expect(authPage.loggedInAs(registeredUser.firstName)).toBeVisible();
 
-    await Promise.all([page.waitForURL(/.*login.*/), signupPage.logoutLink().click()]);
+    await Promise.all([page.waitForURL(/.*login.*/), authPage.logoutLink().click()]);
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
-    await expect(signupPage.loginLink()).toBeVisible();
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.loginLink()).toBeVisible();
   });
 
   test("user cannot log in with invalid password", async ({ page, registeredUser }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
 
-    await signupPage.navigate();
-    await signupPage.login(registeredUser.email, `${registeredUser.password}wrong`);
+    await authPage.navigate();
+    await authPage.login(registeredUser.email, `${registeredUser.password}wrong`);
 
-    await expect(signupPage.invalidLoginMessage()).toBeVisible();
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.invalidLoginMessage()).toBeVisible();
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("user cannot log in with empty credentials", async ({ page }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
 
-    await signupPage.navigate();
-    await signupPage.login("", "");
+    await authPage.navigate();
+    await authPage.login("", "");
 
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("user cannot log in with empty password", async ({ page, registeredUser }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
 
-    await signupPage.navigate();
-    await signupPage.login(registeredUser.email, "");
+    await authPage.navigate();
+    await authPage.login(registeredUser.email, "");
 
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("user cannot log in with empty email", async ({ page, registeredUser }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
 
-    await signupPage.navigate();
-    await signupPage.login("", registeredUser.password);
+    await authPage.navigate();
+    await authPage.login("", registeredUser.password);
 
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("user cannot log in with nonexistent email", async ({ page }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
 
-    await signupPage.navigate();
-    await signupPage.login("nonexistent_user@example.com", "SomePassword1!");
+    await authPage.navigate();
+    await authPage.login("nonexistent_user@example.com", "SomePassword1!");
 
-    await expect(signupPage.invalidLoginMessage()).toBeVisible();
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.invalidLoginMessage()).toBeVisible();
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("session persists across page navigation", async ({ page, registeredUser }) => {
-    const signupPage = new SignupPage(page);
-    await signupPage.navigate();
-    await signupPage.login(registeredUser.email, registeredUser.password);
-    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    const authPage = new AuthPage(page);
+    await authPage.navigate();
+    await authPage.login(registeredUser.email, registeredUser.password);
+    await expect(authPage.loggedInAs(registeredUser.firstName)).toBeVisible();
 
     await page.goto("/products");
     await page.goto("/");
 
-    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    await expect(authPage.loggedInAs(registeredUser.firstName)).toBeVisible();
   });
 
   test("authenticated user navigating to /login does not get logged out", async ({
     page,
     registeredUser,
   }) => {
-    const signupPage = new SignupPage(page);
-    await signupPage.navigate();
-    await signupPage.login(registeredUser.email, registeredUser.password);
-    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    const authPage = new AuthPage(page);
+    await authPage.navigate();
+    await authPage.login(registeredUser.email, registeredUser.password);
+    await expect(authPage.loggedInAs(registeredUser.firstName)).toBeVisible();
 
-    await signupPage.navigate();
+    await authPage.navigate();
 
-    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
-    await expect(signupPage.logoutLink()).toBeVisible();
+    await expect(authPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    await expect(authPage.logoutLink()).toBeVisible();
   });
 
   test("login rejects SQL injection payload in email field", async ({ page }) => {
-    const signupPage = new SignupPage(page);
-    await signupPage.navigate();
-    await signupPage.loginEmailInput().fill("' OR '1'='1'--");
-    await signupPage.loginPasswordInput().fill("anything");
-    await signupPage.loginButton().click();
+    const authPage = new AuthPage(page);
+    await authPage.navigate();
+    await authPage.loginEmailInput().fill("' OR '1'='1'--");
+    await authPage.loginPasswordInput().fill("anything");
+    await authPage.loginButton().click();
 
-    await expect(signupPage.loginEmailInvalidField()).toBeVisible();
+    await expect(authPage.loginEmailInvalidField()).toBeVisible();
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("logout invalidates server session — back navigation does not restore it", async ({
     page,
     registeredUser,
   }) => {
-    const signupPage = new SignupPage(page);
-    await signupPage.navigate();
-    await signupPage.login(registeredUser.email, registeredUser.password);
-    await expect(signupPage.loggedInAs(registeredUser.firstName)).toBeVisible();
+    const authPage = new AuthPage(page);
+    await authPage.navigate();
+    await authPage.login(registeredUser.email, registeredUser.password);
+    await expect(authPage.loggedInAs(registeredUser.firstName)).toBeVisible();
 
-    await Promise.all([page.waitForURL(/.*login.*/), signupPage.logoutLink().click()]);
+    await Promise.all([page.waitForURL(/.*login.*/), authPage.logoutLink().click()]);
     await page.goBack();
     // Reload forces a fresh server request, bypassing bfcache — confirms server session is truly gone
     await page.reload();
 
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
-    await expect(signupPage.logoutLink()).toHaveCount(0);
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.logoutLink()).toHaveCount(0);
   });
 
   test("login email field enforces valid email format", async ({ page }) => {
-    const signupPage = new SignupPage(page);
-    await signupPage.navigate();
-    await signupPage.loginEmailInput().fill("not-an-email");
-    await signupPage.loginPasswordInput().fill("somepassword");
-    await signupPage.loginButton().click();
+    const authPage = new AuthPage(page);
+    await authPage.navigate();
+    await authPage.loginEmailInput().fill("not-an-email");
+    await authPage.loginPasswordInput().fill("somepassword");
+    await authPage.loginButton().click();
 
-    await expect(signupPage.loginEmailInvalidField()).toBeVisible();
+    await expect(authPage.loginEmailInvalidField()).toBeVisible();
     await expect(page).toHaveURL(/.*login.*/);
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
   });
 
   test("unauthenticated user does not see account management links", async ({ page }) => {
-    const signupPage = new SignupPage(page);
+    const authPage = new AuthPage(page);
     await page.goto("/");
 
-    await expect(signupPage.deleteAccountLink()).toHaveCount(0);
-    await expect(signupPage.loggedInAsAny()).toHaveCount(0);
-    await expect(signupPage.loginLink()).toBeVisible();
+    await expect(authPage.deleteAccountLink()).toHaveCount(0);
+    await expect(authPage.loggedInAsAny()).toHaveCount(0);
+    await expect(authPage.loginLink()).toBeVisible();
   });
 });

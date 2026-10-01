@@ -2,7 +2,7 @@ import { Locator, Page } from "@playwright/test";
 import type { SignupData } from "../data/auth.data";
 import { recoverFromVignette } from "../helpers/vignette.helper";
 
-export class SignupPage {
+export class AuthPage {
   constructor(private page: Page) {}
 
   async navigate() {

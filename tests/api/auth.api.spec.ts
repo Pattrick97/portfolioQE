@@ -1,5 +1,6 @@
 import { expect, test } from "../../fixtures/api-fixtures";
 import { expectApiCode, getApiBody } from "../../helpers/api.helper";
+import type { ApiMessageResponse } from "../../models/Api.Model.js";
 
 test.describe("API auth", () => {
   test("verifyLogin returns 404 for unknown user @smoke", async ({ api }) => {
@@ -10,7 +11,7 @@ test.describe("API auth", () => {
       },
     });
 
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 404);
     expect(body.message).toContain("User not found");
   });
@@ -22,7 +23,7 @@ test.describe("API auth", () => {
       },
     });
 
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 400);
     expect(body.message).toContain("missing in POST request");
   });
@@ -32,14 +33,14 @@ test.describe("API auth", () => {
       form: {},
     });
 
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 400);
     expect(body.message).toContain("missing in POST request");
   });
 
   test("verifyLogin rejects GET method with 405", async ({ api }) => {
     const response = await api.get("verifyLogin");
-    const body = await getApiBody<{ responseCode: number; message: string }>(response);
+    const body = await getApiBody<ApiMessageResponse>(response);
     expectApiCode(body, 405);
     expect(body.message).toContain("not supported");
   });
