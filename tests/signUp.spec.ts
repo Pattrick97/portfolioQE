@@ -27,7 +27,18 @@ test.describe("Signup", () => {
     await expect(page).toHaveURL(/.*account_created.*/);
     await expect(signupPage.accountCreatedHeader()).toContainText(authMessages.accountCreated);
 
+    await signupPage.continueAfterAccountCreated();
+    await expect
+      .poll(
+        async () =>
+          (await signupPage.logoutLink().isVisible()) || (await signupPage.loginLink().isVisible()),
+      )
+      .toBe(true);
+    if (await signupPage.logoutLink().isVisible()) {
+      await Promise.all([page.waitForURL(/.*login.*/), signupPage.logoutLink().click()]);
+    }
     await signupPage.login(data.email, data.password);
+    await expect(signupPage.loggedInAs(data.firstName)).toBeVisible();
     await signupPage.deleteAccount();
     await expect(signupPage.accountDeletedHeader()).toContainText(authMessages.accountDeleted);
     await expect(page).toHaveURL(/.*delete_account.*/);

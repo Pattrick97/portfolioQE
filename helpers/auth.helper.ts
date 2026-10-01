@@ -1,6 +1,7 @@
 import { Browser, Page, expect } from "@playwright/test";
 import { SignupPage } from "../pages/signupPage.Page";
 import { SignupData, authMessages } from "../data/auth.data";
+import { installConsentHandler } from "./consent.helper";
 import { recoverFromVignette } from "./vignette.helper";
 
 export async function createAccount(browser: Browser, data: SignupData): Promise<void> {
@@ -8,6 +9,7 @@ export async function createAccount(browser: Browser, data: SignupData): Promise
     baseURL: "https://automationexercise.com",
   });
   const page = await context.newPage();
+  await installConsentHandler(page);
   const signupPage = new SignupPage(page);
 
   await signupPage.navigate();
@@ -28,6 +30,7 @@ export async function deleteAccount(browser: Browser, data: SignupData): Promise
     baseURL: "https://automationexercise.com",
   });
   const page = await context.newPage();
+  await installConsentHandler(page);
   const signupPage = new SignupPage(page);
 
   await signupPage.navigate();
