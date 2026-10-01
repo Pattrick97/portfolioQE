@@ -28,7 +28,7 @@ jobs:
   api-smoke:
     name: API smoke
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CI: true
     steps:
@@ -57,7 +57,7 @@ jobs:
     name: Smoke (chromium)
     needs: api-smoke
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CI: true
     steps:
@@ -95,7 +95,7 @@ jobs:
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression')
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CI: true
     strategy:
@@ -143,7 +143,7 @@ jobs:
     name: Suite summary
     needs: [api-smoke, smoke, regression]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Download all reports
         uses: actions/download-artifact@v8
