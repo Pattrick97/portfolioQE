@@ -94,7 +94,7 @@ playwright.config.ts   # Playwright configuration
 
 - guest checkout guard (redirect/login modal)
 - category + brand filtering and add to cart
-- remove product from the cart
+- remove product from cart
 - proceed to checkout
 - complete checkout and place order (payment)
 - empty payment fields blocked
